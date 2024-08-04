@@ -21,21 +21,27 @@ from fasthtml.common import (
 )
 """
 
+import sqlite_utils
+
+
 from hmac import compare_digest
 
-# You can use any database you want; it'll be easier if you pick a lib that supports the MiniDataAPI spec.
-# Here we are using SQLite, with the FastLite library, which supports the MiniDataAPI spec.
-db = database('data/ainews.db')
-# The `t` attribute is the table collection. The `todos` and `users` tables are not created if they don't exist.
-# Instead, you can use the `create` method to create them if needed.
-posts,users = db.t.posts,db.t.users
-if posts not in db.t:
-    # You can pass a dict, or kwargs, to most MiniDataAPI methods.
-    users.create(dict(id=int, name=str, pwd=str), pk='id')
-    posts.create(id=int, title=str, read=bool, url=str, details=str, created_at=str, owner=str, points=int, pk='id')
+from db import setup_database
+
+# Assuming the database path is provided or set as a constant
+DATABASE_PATH = "my_database.db"
+setup_database('./data/ainews.db')
+
+
 # Although you can just use dicts, it can be helpful to have types for your DB objects.
 # The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
+db = database('./data/ainews.db')
+
+posts, users = db.t.posts, db.t.users
 Post,User = posts.dataclass(),users.dataclass()
+
+print("Querying User")
+print(db.q("SELECT * FROM User"))
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -206,6 +212,10 @@ def home(auth):
     # The reason we put the todo list inside a form is so that we can use the 'sortable' js library to reorder them.
     # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/upvote`
     # handler to be called.
+
+    data = str(db.q(f"SELECT * FROM {myuser}"))
+
+    output = Div(data)
     frm = Form(*posts(order_by='points'),
                id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
@@ -214,7 +224,7 @@ def home(auth):
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
-    return Title(title), Container(top, card)
+    return Title(title), Container(top, output)
 
 # swyx: submit page
 @rt("/submit")
@@ -318,5 +328,15 @@ async def get(id:int):
     # Therefore this will trigger the JS to parse the markdown in the details field.
     # Because `class` is a reserved keyword in Python, we use `cls` instead, which FastHTML auto-converts.
     return Div(H2(post.title), Div(post.details, cls="markdown"), btn)
+
+@app.get("/tables")
+async def get_tables():
+    return {"tables": list(db.t)}
+
+@app.get("/schema/{table_name}")
+async def get_schema(table_name: str):
+    if table_name not in db.t:
+        raise HTTPException(status_code=404, detail="Table not found")
+    return {"schema": db.t[table_name].schema}    
 
 serve()
