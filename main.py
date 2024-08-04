@@ -1,9 +1,4 @@
-###
-# Walkthough of an idiomatic fasthtml app
-###
-
 # This fasthtml app includes functionality from fastcore, starlette, fastlite, and fasthtml itself.
-# Run with: `python adv_app.py`
 # Importing from `fasthtml.common` brings the key parts of all of these together.
 # For simplicity, you can just `from fasthtml.common import *`:
 from fasthtml.common import *
@@ -23,8 +18,6 @@ from fasthtml.common import (
 )
 """
 
-import sqlite_utils
-
 
 from hmac import compare_digest
 
@@ -32,15 +25,7 @@ from db import setup_database
 
 # Assuming the database path is provided or set as a constant
 DATABASE_PATH = "my_database.db"
-setup_database('./data/ainews.db')
-
-
-# Although you can just use dicts, it can be helpful to have types for your DB objects.
-# The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
-db = database('./data/ainews.db')
-
-posts, user = db.t.posts, db.t.user
-Post,User = posts.dataclass(),user.dataclass()
+db = setup_database('./data/ainews.db')
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -80,7 +65,7 @@ app, rt = fast_app(
                # `picolink` is pre-defined with the header for the PicoCSS stylesheet.
                # You can use any CSS framework you want, or none at all.
                hdrs=(picolink,
-                     Script(src="https://cdn.tailwindcss.com"),
+                     Script(src="https://cdn.tailwindcss.com"), # SWYX TODO: figure out proper tailwind deployment
                      # `Style` is an `FT` object, which are 3-element lists consisting of:
                      # (tag_name, children_list, attrs_dict).
                      # FastHTML composes them from trees and auto-converts them to HTML when needed.
@@ -139,16 +124,29 @@ def post(login:Login, sess):
     if not login.name or not login.pwd: return login_redir
     # Indexing into a MiniDataAPI table queries by primary key, which is `name` here.
     # It returns a dataclass object, if `dataclass()` has been called at some point, or a dict otherwise.
-    try: u = user[login.name]
-    # If the primary key does not exist, the method raises a `NotFoundError`.
-    # Here we use this to just generate a user -- in practice you'd probably to redirect to a signup page.
-    except NotFoundError:
-      import uuid
-      login.id = uuid.uuid4()
-      u = user.insert(login)
-    # This compares the passwords using a constant time string comparison
-    # https://sqreen.github.io/DevelopersSecurityBestPractices/timing-attack/python
-    if not compare_digest(u.pwd.encode("utf-8"), login.pwd.encode("utf-8")): return login_redir
+    # Use sqlite-utils to query for the user
+    user_table = db["User"]
+    
+    # Try to get user details if exists
+    user = user_table.get(login.name)
+    
+    if user:
+        # User exists, return the user details
+        u = user
+    else:
+        # User doesn't exist, create a new user
+        import uuid
+        import bcrypt
+        new_user = {
+            "user_id": str(uuid.uuid4()),
+            "username": login.name,
+            "password": bcrypt.hashpw(login.pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "markdown_bio": f"I am {login.name}"
+        }
+        user_table.insert(new_user)
+        u = new_user
+        
+    if not bcrypt.checkpw(login.pwd.encode('utf-8'), u['password'].encode('utf-8')): return login_redir
     # Because the session is signed, we can securely add information to it. It's stored in the browser cookies.
     # If you don't pass a secret signing key to `FastHTML`, it will auto-generate one and store it in a file `./sesskey`.
     sess['auth'] = u.name
@@ -163,8 +161,12 @@ def profile(auth):
         return RedirectResponse('/login', status_code=303)
     
     # Fetch user data
-    user = users[auth]
+    user_table = db["User"]
+    print('retrieving user details for ', auth)
+    user = user_table.get(auth)
     
+    
+    # swyx: this code is untested we just generated it
     # Create a list of user fields
     user_fields = [
         Div(
@@ -210,12 +212,8 @@ def logout(sess):
 async def get(fname:str, ext:str): return FileResponse(f'/static/{fname}.{ext}')
 # swyx note - this doesnt quite work yet - http://0.0.0.0:5001/favicon.ico returns 404 - we will fix later
 
-# The `patch` decorator, which is defined in `fastcore`, adds a method to an existing class.
-# Here we are adding a method to the `Todo` class, which is returned by the `todos` table.
-# The `__ft__` method is a special method that FastHTML uses to convert the object into an `FT` object,
-# so that it can be composed into an FT tree, and later rendered into HTML.
-@patch
-def __ft__(self:Post):
+
+def renderPost(self):
     # Some FastHTML tags have an 'X' suffix, which means they're "extended" in some way.
     # For instance, here `AX` is an extended `A` tag, which takes 3 positional arguments:
     # `(text, hx_get, target_id)`.
@@ -223,15 +221,15 @@ def __ft__(self:Post):
     # which HTMX uses to trigger a GET request.
     # Generally, most of your route handlers in practice (as in this demo app) are likely to be HTMX handlers.
     # For instance, for this demo, we only have two full-page handlers: the '/login' and '/' GET handlers.
-    show = display_url(self.url, self.title, self.created_at, self.owner)
-    comments = AX('comments',     f'/p/{self.id}' , 'current-post', cls="hover:text-blue-200 text-blue-400")
-    isRead = '✅ ' if self.read else '🔲 '
-    points = Span(str(self.points or 0))
+    show = display_url(self["url"], self["title"], self["created_at"], self["owner"])
+    comments = AX('comments',     f'/p/{self["id"]}' , 'current-post', cls="hover:text-blue-200 text-blue-400")
+    isRead = '✅ ' if self["read"] else '🔲 '
+    points = Span(str(self["points"] or 0))
     # FastHTML provides some shortcuts. For instance, `Hidden` is defined as simply:
     # `return Input(type="hidden", value=value, **kwargs)`
-    cts = Div(Div(points, cls="w-24 text-right"), Div(show, ' | ', comments, Hidden(id="id", value=self.id)), cls="flex gap-4")
+    cts = Div(Div(points, cls="w-24 text-right"), Div(show, ' | ', comments, Hidden(id="id", value=self["id"])), cls="flex gap-4")
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
-    return Li(Form(cts), id=f'post-{self.id}', cls='list-none')
+    return Li(Form(cts), id=f'post-{self["id"]}', cls='list-none')
 
 
 # This is the handler for the main todo list application.
@@ -255,26 +253,22 @@ def home(auth):
     #            hx_post="/", target_id='posts-list', hx_swap="afterbegin")
     # In the MiniDataAPI spec, treating a table as a callable (i.e with `todos(...)` here) queries the table.
     # Because we called `xtra` in our Beforeware, this queries the todos for the current user only.
-    # We can include the todo objects directly as children of the `Form`, because the `Todo` class has `__ft__` defined.
-    # This is automatically called by FastHTML to convert the `Todo` objects into `FT` objects when needed.
-    # The reason we put the todo list inside a form is so that we can use the 'sortable' js library to reorder them.
-    # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/upvote`
-    # handler to be called.
+    
 
-    data = str(db.q(f"SELECT * FROM {user}"))
 
-    output = Div(data)
-    frm = Form(*posts(order_by='points'),
-               id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
-    frm = Ul(*posts(order_by='-points'))
-              #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
-    # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(frm, header=Div('read em and weep'), footer=Div(id='current-post'))
-    # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
-    # A handler can return either a single `FT` object or string, or a tuple of them.
-    # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
-    # The `Title` tag has a special purpose: it sets the title of the page.
-    return Title(title), Container(top, output, card)
+
+    output = Div(*[renderPost(x) for x in db["posts"].rows_where("points > 0", order_by="points desc")])
+    # frm = Form(*posts(order_by='points'),
+    #            id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
+    # frm = Ul(*posts(order_by='-points'))
+    #           #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
+    # # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
+    card = Card(output, header=Div('read em and weep'), footer=Div(id='current-post'))
+    # # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
+    # # A handler can return either a single `FT` object or string, or a tuple of them.
+    # # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
+    # # The `Title` tag has a special purpose: it sets the title of the page.
+    return Title(title), Container(top, card)
 
 # swyx: submit page
 @rt("/submit")
@@ -357,42 +351,42 @@ async def get(id:int):
     # `xtra`, so this will only return the id if it belongs to the current user.
     return fill_form(res, posts[id])
 
-@rt("/")
-async def put(post: Post):
-    # `upsert` and `update` are both part of the MiniDataAPI spec, updating or inserting an item.
-    # Note that the updated/inserted todo is returned. By returning the updated todo, we can update the list directly.
-    # Because we return a tuple with `clr_details()`, the details view is also cleared.
-    return posts.upsert(post), clr_details()
+# @rt("/")
+# async def put(post: Post):
+#     # `upsert` and `update` are both part of the MiniDataAPI spec, updating or inserting an item.
+#     # Note that the updated/inserted todo is returned. By returning the updated todo, we can update the list directly.
+#     # Because we return a tuple with `clr_details()`, the details view is also cleared.
+#     return posts.upsert(post), clr_details()
 
-@rt("/")
-async def post(auth, _post:Post):
-    # # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
-    # # This is used to clear the input field after adding the new todo.
-    # new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
-    # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)", hx_swap_oob='true')
-    # dummy = Input(id="new-dummy", name="dummy", placeholder="Dummy")
-    # # `insert` returns the inserted todo, which is appended to the start of the list, because we used
-    # # `hx_swap='afterbegin'` when creating the todo list form.
-    _post.created_at = datetime.now().isoformat()
-    _post.owner = auth
+# @rt("/")
+# async def post(auth, _post:Post):
+#     # # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
+#     # # This is used to clear the input field after adding the new todo.
+#     # new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
+#     # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)", hx_swap_oob='true')
+#     # dummy = Input(id="new-dummy", name="dummy", placeholder="Dummy")
+#     # # `insert` returns the inserted todo, which is appended to the start of the list, because we used
+#     # # `hx_swap='afterbegin'` when creating the todo list form.
+#     _post.created_at = datetime.now().isoformat()
+#     _post.owner = auth
 
-    # just for demo purposes, comment out in future
-    import random
-    _post.points = random.randint(0, 500)
+#     # just for demo purposes, comment out in future
+#     import random
+#     _post.points = random.randint(0, 500)
 
-    posts.insert(_post)
-    return home(auth)
+#     posts.insert(_post)
+#     return home(auth)
 
-@rt("/posts/{id}")
-async def get(id:int):
-    post = posts[id]
-    # `hx_swap` determines how the update should occur. We use "outerHTML" to replace the entire todo `Li` element.
-    btn = Button('delete', hx_delete=f'/posts/{post.id}',
-                 target_id=f'post-{post.id}', hx_swap="outerHTML")
-    # The "markdown" class is used here because that's the CSS selector we used in the JS earlier.
-    # Therefore this will trigger the JS to parse the markdown in the details field.
-    # Because `class` is a reserved keyword in Python, we use `cls` instead, which FastHTML auto-converts.
-    return Div(H2(post.title), Div(post.details, cls="markdown"), btn)
+# @rt("/posts/{id}")
+# async def get(id:int):
+#     post = posts[id]
+#     # `hx_swap` determines how the update should occur. We use "outerHTML" to replace the entire todo `Li` element.
+#     btn = Button('delete', hx_delete=f'/posts/{post.id}',
+#                  target_id=f'post-{post.id}', hx_swap="outerHTML")
+#     # The "markdown" class is used here because that's the CSS selector we used in the JS earlier.
+#     # Therefore this will trigger the JS to parse the markdown in the details field.
+#     # Because `class` is a reserved keyword in Python, we use `cls` instead, which FastHTML auto-converts.
+#     return Div(H2(post.title), Div(post.details, cls="markdown"), btn)
 
 @app.get("/tables")
 async def get_tables():

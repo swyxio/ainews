@@ -14,12 +14,13 @@ def setup_database(db_path):
     # User table
     created = create_table_if_not_exists("User", {
         "user_id": str,
-        "pseudonym": str,
+        "password": str,
+        "username": str,
         "markdown_bio": str,
         "created_at": str
-    }, pk="user_id", not_null={"pseudonym"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
+    }, pk="user_id", not_null={"username", "password"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["User"].create_index(["pseudonym"], unique=True)
+        db["User"].create_index(["username"], unique=True)
     
     user_count = next(db.query("SELECT count(*) FROM User"))['count(*)']
     if user_count < 1:
@@ -32,15 +33,17 @@ def setup_database(db_path):
             letters = string.ascii_lowercase
             return ''.join(random.choice(letters) for i in range(length))
 
-        pseudonym = generate_random_username()
+        username = generate_random_username()
 
         import uuid
+        import bcrypt
         user_id = str(uuid.uuid4())
 
         db["User"].insert({
             "user_id": user_id,
-            "pseudonym": pseudonym,
-            "markdown_bio": f"I am {pseudonym}"
+            "password": bcrypt.hashpw("rosebud".encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "username": username,
+            "markdown_bio": f"I am {username}"
         })
     else:
         print("Users found.")
@@ -179,6 +182,7 @@ def setup_database(db_path):
         db["CommentVote"].add_foreign_key("comment_id", "Comment", "comment_id")
         db["CommentVote"].create_index(["user_id", "comment_id"], unique=True)
 
+    return db
     # print_schema(db)
 
 def print_schema(db):
