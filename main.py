@@ -40,9 +40,6 @@ db = database('./data/ainews.db')
 posts, users = db.t.posts, db.t.users
 Post,User = posts.dataclass(),users.dataclass()
 
-print("Querying User")
-print(db.q("SELECT * FROM User"))
-
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
 # Status code 303 is a redirect that can change POST to GET, so it's appropriate for a login page.

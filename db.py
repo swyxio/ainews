@@ -9,7 +9,6 @@ def setup_database(db_path):
             print(f"Created table: {table_name}")
             return True
         else:
-            print(f"Table already exists: {table_name}")
             return False
 
     # User table
@@ -22,23 +21,29 @@ def setup_database(db_path):
     if created:
         db["User"].create_index(["pseudonym"], unique=True)
     
-    import random
-    import string
+    user_count = next(db.query("SELECT count(*) FROM User"))['count(*)']
+    if user_count < 1:
+        print("No users found.  Creating  one.")
 
-    def generate_random_username(length=8):
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for i in range(length))
+        import random
+        import string
 
-    pseudonym = generate_random_username()
+        def generate_random_username(length=8):
+            letters = string.ascii_lowercase
+            return ''.join(random.choice(letters) for i in range(length))
 
-    import uuid
-    user_id = str(uuid.uuid4())
-    
-    db["User"].insert({
-        "user_id": user_id,
-        "pseudonym": pseudonym,
-        "markdown_bio": f"I am {pseudonym}"
-    })
+        pseudonym = generate_random_username()
+
+        import uuid
+        user_id = str(uuid.uuid4())
+
+        db["User"].insert({
+            "user_id": user_id,
+            "pseudonym": pseudonym,
+            "markdown_bio": f"I am {pseudonym}"
+        })
+    else:
+        print("Users found.")
 
     # Comment table
     created = create_table_if_not_exists("Comment", {
@@ -174,6 +179,9 @@ def setup_database(db_path):
         db["CommentVote"].add_foreign_key("comment_id", "Comment", "comment_id")
         db["CommentVote"].create_index(["user_id", "comment_id"], unique=True)
 
+    # print_schema(db)
+
+def print_schema(db):
     print("\nDatabase schema setup complete.")
     print("\nDumping CREATE SQL statements for all tables:")
 
