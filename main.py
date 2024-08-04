@@ -7,6 +7,8 @@
 # Importing from `fasthtml.common` brings the key parts of all of these together.
 # For simplicity, you can just `from fasthtml.common import *`:
 from fasthtml.common import *
+from extensions import A2, display_time, display_url
+from datetime import datetime
 # ...or you can import everything into a namespace:
 # from fasthtml import common as fh
 # ...or you can import each symbol explicitly (which we're commenting out here but including for completeness):
@@ -71,11 +73,14 @@ bware = Beforeware(before, skip=[r'/favicon\.ico', r'/static/.*', r'.*\.css', '/
 # The `FastHTML` class is a subclass of `Starlette`, so you can use any parameters that `Starlette` accepts.
 # In addition, you can add your Beforeware here, and any headers you want included in HTML responses.
 # FastHTML includes the "HTMX" and "Surreal" libraries in headers, unless you pass `default_hdrs=False`.
-app = FastHTML(before=bware,
+app, rt = fast_app(
+               live=os.getenv('DEV') == 'true', # https://docs.fastht.ml/ref/live_reload.html
+               before=bware,
                # PicoCSS is a particularly simple CSS framework, with some basic integration built in to FastHTML.
                # `picolink` is pre-defined with the header for the PicoCSS stylesheet.
                # You can use any CSS framework you want, or none at all.
                hdrs=(picolink,
+                     Script(src="https://cdn.tailwindcss.com"),
                      # `Style` is an `FT` object, which are 3-element lists consisting of:
                      # (tag_name, children_list, attrs_dict).
                      # FastHTML composes them from trees and auto-converts them to HTML when needed.
@@ -84,15 +89,16 @@ app = FastHTML(before=bware,
                      Style(':root { --pico-font-size: 100%; }'),
                      # Have a look at fasthtml/js.py to see how these Javascript libraries are added to FastHTML.
                      # They are only 5-10 lines of code each, and you can add your own too.
-                     SortableJS('.sortable'),
+                    #  SortableJS('.sortable'), # commented out bc not needed
                      # MarkdownJS is actually provided as part of FastHTML, but we've included the js code here
                      # so that you can see how it works.
                      Script(markdown_js, type='module'))
                 )
-# We add `rt` as a shortcut for `app.route`, which is what we'll use to decorate our route handlers.
-# When using `app.route` (or this shortcut), the only required argument is the path.
-# The name of the decorated function (eg `get`, `post`, etc) is used as the HTTP verb for the handler.
-rt = app.route
+# # We add `rt` as a shortcut for `app.route`, which is what we'll use to decorate our route handlers.
+# # When using `app.route` (or this shortcut), the only required argument is the path.
+# # The name of the decorated function (eg `get`, `post`, etc) is used as the HTTP verb for the handler.
+# rt = app.route
+# swyx: no longer needed since we switched from `FastHTMLWithLiveReload` to `fast_app`
 
 # For instance, this function handles GET requests to the `/login` path.
 @rt("/login")
@@ -150,7 +156,45 @@ def post(login:Login, sess):
 
 # Instead of using `app.route` (or the `rt` shortcut), you can also use `app.get`, `app.post`, etc.
 # In this case, the function name is not used to determine the HTTP verb.
-@app.get("/logout")
+@app.get("/profile")
+def profile(auth):
+    # Check if user is authenticated
+    if not auth:
+        return RedirectResponse('/login', status_code=303)
+    
+    # Fetch user data
+    user = users[auth]
+    
+    # Create a list of user fields
+    user_fields = [
+        Div(
+            Span(f"{field}: ", cls="font-bold"),
+            Span(str(getattr(user, field))),
+            cls="mb-2"
+        )
+        for field in user.__dataclass_fields__
+        if field != 'pwd'  # Exclude password field for security
+    ]
+    # Add a logout button to the profile content
+    logout_button = Form(
+        Button("Logout", type="submit", cls="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"),
+        action="/logout",
+        method="post",
+        cls="mt-4"
+    )
+    # Wrap user fields in a container
+    profile_content = Div(
+        H2("User Profile", cls="text-2xl mb-4"),
+        *user_fields,
+        logout_button,
+        cls="p-4 bg-gray-100 rounded-lg"
+    )
+    
+    return profile_content
+
+# Instead of using `app.route` (or the `rt` shortcut), you can also use `app.get`, `app.post`, etc.
+# In this case, the function name is not used to determine the HTTP verb.
+@app.post("/logout")
 def logout(sess):
     del sess['auth']
     return login_redir
@@ -179,14 +223,16 @@ def __ft__(self:Post):
     # which HTMX uses to trigger a GET request.
     # Generally, most of your route handlers in practice (as in this demo app) are likely to be HTMX handlers.
     # For instance, for this demo, we only have two full-page handlers: the '/login' and '/' GET handlers.
-    show = AX(self.title, f'/posts/{self.id}', 'current-post')
-    edit = AX('edit',     f'/edit/{self.id}' , 'current-post')
-    isRead = '✅ ' if self.read else ''
+    show = display_url(self.url, self.title, self.created_at, self.owner)
+    comments = AX('comments',     f'/p/{self.id}' , 'current-post', cls="hover:text-blue-200 text-blue-400")
+    isRead = '✅ ' if self.read else '🔲 '
+    points = Span(str(self.points or 0))
     # FastHTML provides some shortcuts. For instance, `Hidden` is defined as simply:
     # `return Input(type="hidden", value=value, **kwargs)`
-    cts = (isRead, show, ' | ', edit, Hidden(id="id", value=self.id), Hidden(id="points", value="0"))
+    cts = Div(Div(points, cls="w-24 text-right"), Div(show, ' | ', comments, Hidden(id="id", value=self.id)), cls="flex gap-4")
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
-    return Li(*cts, id=f'post-{self.id}')
+    return Li(Form(cts), id=f'post-{self.id}', cls='list-none')
+
 
 # This is the handler for the main todo list application.
 # By including the `auth` parameter, it gets passed the current username, for displaying in the title.
@@ -195,7 +241,12 @@ def __ft__(self:Post):
 @app.get("/")
 def home(auth):
     title = f"AI News - Welcome {auth}"
-    top = Grid(H1(title), Div(A('logout', href='/logout'), style='text-align: right'))
+    top = Grid(H1(title), 
+               Div(
+                   A2('submit', href='/submit'), 
+                   '|',
+                   A2(auth, href='/profile'), 
+                   style='text-align: right'))
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
     # new_inp = Input(id="new-title", name="title", placeholder="New Post")
@@ -215,32 +266,42 @@ def home(auth):
     output = Div(data)
     frm = Form(*posts(order_by='points'),
                id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
+    frm = Ul(*posts(order_by='-points'))
+              #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(Ul(frm), header=Div('read em and weep'), footer=Div(id='current-post'))
+    card = Card(frm, header=Div('read em and weep'), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
-    return Title(title), Container(top, output)
+    return Title(title), Container(top, output, card)
 
 # swyx: submit page
 @rt("/submit")
 def get(auth):
     title = f"Submit AI News - by {auth}"
-    top = Grid(H1(title), Div(A('logout', href='/logout'), style='text-align: right'))
+    top = Grid(H1(title), Div(A2(auth, href='/profile'), style='text-align: right'))
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
-    new_inp = Input(id="new-title", name="title", placeholder="New Post")
+    new_inp = Input(id="new-title", name="title", placeholder="Post Title")
     new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)")
-    add = Form(Group(new_inp, new_url, Button("Submit New Post")),
+    # owner = Div("Submitter: ", Input(id="owner", name="owner", value=auth, disabled = True, cls="w-full"), cls="flex gap-4 items-center")
+    # created_at = Div("At: ", Input(id="created_at", name="created_at", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), disabled=True, cls="w-full"), cls="flex gap-4 items-center")
+    details = Textarea(id="details", name="details", placeholder="Post Comments (optional - Markdown supported)", cls="w-full p-4")
+    points = Hidden(id="points", name="points", value="0")
+    add = Form(Group(new_inp, new_url,
+                     points,
+                    #  Div( owner, created_at,  cls="flex justify-between"),
+                     details,
+                     Button("Submit New Post", cls="mt-4 p-8 hover:bg-green-700"), cls="flex-col gap-4"),
                action="/", method='post')
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(add, header=Div( 'lskdjlskj', id='header'), footer=Div(id='current-post'))
+    card = Card(add, header=Div( 'Submit', id='header'), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
-    return Title(title), Container(card)
+    return Title(title), Container(top, card)
 
 # This is the handler for the reordering of todos.
 # It's a POST request, which is used by the 'sortable' js library.
@@ -287,7 +348,7 @@ def delete(id:int):
 async def get(id:int):
     # The `hx_put` attribute tells HTMX to send a PUT request when the form is submitted.
     # `target_id` specifies which element will be updated with the server's response.
-    res = Form(Group(Input(id="title"), Input(id="url"),  Input(id="owner"),  Input(id="created_at"),  Input(id="points"), Button("Save")),
+    res = Form(Group(Input(id="title"), Input(id="url"),  Input(id="owner"),  Hidden(id="created_at"),  Input(id="points"), Button("Save")),
         Hidden(id="id"), Checkbox(id="read", label='Read'),
         Textarea(id="details", name="details", rows=10),
         hx_put="/", target_id=f'post-{id}', id="edit")
@@ -312,6 +373,13 @@ async def post(auth, _post:Post):
     # dummy = Input(id="new-dummy", name="dummy", placeholder="Dummy")
     # # `insert` returns the inserted todo, which is appended to the start of the list, because we used
     # # `hx_swap='afterbegin'` when creating the todo list form.
+    _post.created_at = datetime.now().isoformat()
+    _post.owner = auth
+
+    # just for demo purposes, comment out in future
+    import random
+    _post.points = random.randint(0, 500)
+
     posts.insert(_post)
     return home(auth)
 
