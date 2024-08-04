@@ -9,8 +9,14 @@ Code hosted at: https://github.com/swyxio/ainews
 enter virtual env, install requirements then
 
 ```bash
-python main.py
-open http://localhost:5001
+# for normal run
+python main.py 
+# open http://localhost:5001
+
+# for live reloading https://docs.fastht.ml/ref/live_reload.html
+# however this currently causes double submissions
+DEV=true uvicorn main:app --reload
+# open http://localhost:8000
 ```
 
 ## deploy instructions
