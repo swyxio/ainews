@@ -25,17 +25,17 @@ from hmac import compare_digest
 
 # You can use any database you want; it'll be easier if you pick a lib that supports the MiniDataAPI spec.
 # Here we are using SQLite, with the FastLite library, which supports the MiniDataAPI spec.
-db = database('data/utodos.db')
+db = database('data/ainews.db')
 # The `t` attribute is the table collection. The `todos` and `users` tables are not created if they don't exist.
 # Instead, you can use the `create` method to create them if needed.
-todos,users = db.t.todos,db.t.users
-if todos not in db.t:
+posts,users = db.t.posts,db.t.users
+if posts not in db.t:
     # You can pass a dict, or kwargs, to most MiniDataAPI methods.
-    users.create(dict(name=str, pwd=str), pk='name')
-    todos.create(id=int, title=str, done=bool, name=str, details=str, priority=int, pk='id')
+    users.create(dict(id=int, name=str, pwd=str), pk='id')
+    posts.create(id=int, title=str, read=bool, url=str, details=str, created_at=str, owner=str, points=int, pk='id')
 # Although you can just use dicts, it can be helpful to have types for your DB objects.
 # The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
-Todo,User = todos.dataclass(),users.dataclass()
+Post,User = posts.dataclass(),users.dataclass()
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -52,9 +52,10 @@ def before(req, sess):
     auth = req.scope['auth'] = sess.get('auth', None)
     # If the session key is not there, it redirects to the login page.
     if not auth: return login_redir
-    # `xtra` is part of the MiniDataAPI spec. It adds a filter to queries and DDL statements,
-    # to ensure that the user can only see/edit their own todos.
-    todos.xtra(name=auth)
+    # # `xtra` is part of the MiniDataAPI spec. It adds a filter to queries and DDL statements,
+    # # to ensure that the user can only see/edit their own todos.
+    # swyx: commented out because want to see global posts
+    # posts.xtra(name=auth)
 
 markdown_js = """
 import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
@@ -132,7 +133,10 @@ def post(login:Login, sess):
     try: u = users[login.name]
     # If the primary key does not exist, the method raises a `NotFoundError`.
     # Here we use this to just generate a user -- in practice you'd probably to redirect to a signup page.
-    except NotFoundError: u = users.insert(login)
+    except NotFoundError:
+      import uuid
+      login.id = uuid.uuid4()
+      u = users.insert(login)
     # This compares the passwords using a constant time string comparison
     # https://sqreen.github.io/DevelopersSecurityBestPractices/timing-attack/python
     if not compare_digest(u.pwd.encode("utf-8"), login.pwd.encode("utf-8")): return login_redir
@@ -156,14 +160,15 @@ def logout(sess):
 # Note, this function is unnecessary, as the `fast_app()` call already includes this functionality.
 # However, it's included here to show how you can define your own static file handler.
 @rt("/{fname:path}.{ext:static}")
-async def get(fname:str, ext:str): return FileResponse(f'{fname}.{ext}')
+async def get(fname:str, ext:str): return FileResponse(f'/static/{fname}.{ext}')
+# swyx note - this doesnt quite work yet - http://0.0.0.0:5001/favicon.ico returns 404 - we will fix later
 
 # The `patch` decorator, which is defined in `fastcore`, adds a method to an existing class.
 # Here we are adding a method to the `Todo` class, which is returned by the `todos` table.
 # The `__ft__` method is a special method that FastHTML uses to convert the object into an `FT` object,
 # so that it can be composed into an FT tree, and later rendered into HTML.
 @patch
-def __ft__(self:Todo):
+def __ft__(self:Post):
     # Some FastHTML tags have an 'X' suffix, which means they're "extended" in some way.
     # For instance, here `AX` is an extended `A` tag, which takes 3 positional arguments:
     # `(text, hx_get, target_id)`.
@@ -171,42 +176,64 @@ def __ft__(self:Todo):
     # which HTMX uses to trigger a GET request.
     # Generally, most of your route handlers in practice (as in this demo app) are likely to be HTMX handlers.
     # For instance, for this demo, we only have two full-page handlers: the '/login' and '/' GET handlers.
-    show = AX(self.title, f'/todos/{self.id}', 'current-todo')
-    edit = AX('edit',     f'/edit/{self.id}' , 'current-todo')
-    dt = '✅ ' if self.done else ''
+    show = AX(self.title, f'/posts/{self.id}', 'current-post')
+    edit = AX('edit',     f'/edit/{self.id}' , 'current-post')
+    isRead = '✅ ' if self.read else ''
     # FastHTML provides some shortcuts. For instance, `Hidden` is defined as simply:
     # `return Input(type="hidden", value=value, **kwargs)`
-    cts = (dt, show, ' | ', edit, Hidden(id="id", value=self.id), Hidden(id="priority", value="0"))
+    cts = (isRead, show, ' | ', edit, Hidden(id="id", value=self.id), Hidden(id="points", value="0"))
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
-    return Li(*cts, id=f'todo-{self.id}')
+    return Li(*cts, id=f'post-{self.id}')
 
 # This is the handler for the main todo list application.
 # By including the `auth` parameter, it gets passed the current username, for displaying in the title.
-@rt("/")
-def get(auth):
-    title = f"{auth}'s Todo list"
+# @rt("/")
+# def get(auth):
+@app.get("/")
+def home(auth):
+    title = f"AI News - Welcome {auth}"
     top = Grid(H1(title), Div(A('logout', href='/logout'), style='text-align: right'))
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
-    new_inp = Input(id="new-title", name="title", placeholder="New Todo")
-    add = Form(Group(new_inp, Button("Add")),
-               hx_post="/", target_id='todo-list', hx_swap="afterbegin")
+    # new_inp = Input(id="new-title", name="title", placeholder="New Post")
+    # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)")
+    # add = Form(Group(new_inp, new_url, Button("Submit New Post")),
+    #            hx_post="/", target_id='posts-list', hx_swap="afterbegin")
     # In the MiniDataAPI spec, treating a table as a callable (i.e with `todos(...)` here) queries the table.
     # Because we called `xtra` in our Beforeware, this queries the todos for the current user only.
     # We can include the todo objects directly as children of the `Form`, because the `Todo` class has `__ft__` defined.
     # This is automatically called by FastHTML to convert the `Todo` objects into `FT` objects when needed.
     # The reason we put the todo list inside a form is so that we can use the 'sortable' js library to reorder them.
-    # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/reorder`
+    # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/upvote`
     # handler to be called.
-    frm = Form(*todos(order_by='priority'),
-               id='todo-list', cls='sortable', hx_post="/reorder", hx_trigger="end")
-    # We create an empty 'current-todo' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(Ul(frm), header=add, footer=Div(id='current-todo'))
+    frm = Form(*posts(order_by='points'),
+               id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
+    # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
+    card = Card(Ul(frm), header=Div('read em and weep'), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
     return Title(title), Container(top, card)
+
+# swyx: submit page
+@rt("/submit")
+def get(auth):
+    title = f"Submit AI News - by {auth}"
+    top = Grid(H1(title), Div(A('logout', href='/logout'), style='text-align: right'))
+    # We don't normally need separate "screens" for adding or editing data. Here for instance,
+    # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
+    new_inp = Input(id="new-title", name="title", placeholder="New Post")
+    new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)")
+    add = Form(Group(new_inp, new_url, Button("Submit New Post")),
+               action="/", method='post')
+    # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
+    card = Card(add, header=Div( 'lskdjlskj', id='header'), footer=Div(id='current-post'))
+    # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
+    # A handler can return either a single `FT` object or string, or a tuple of them.
+    # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
+    # The `Title` tag has a special purpose: it sets the title of the page.
+    return Title(title), Container(card)
 
 # This is the handler for the reordering of todos.
 # It's a POST request, which is used by the 'sortable' js library.
@@ -218,30 +245,31 @@ def get(auth):
 # annotation to try to cast the value to the requested type.
 # In the case of form data, there can be multiple values with the same key. So in this case,
 # the parameter is a list of ints.
-@rt("/reorder")
+@rt("/upvote")
 def post(id:list[int]):
-    for i,id_ in enumerate(id): todos.update({'priority':i}, id_)
+    for i,id_ in enumerate(id): posts.update({'points':i}, id_)
     # HTMX by default replaces the inner HTML of the calling element, which in this case is the todo list form.
-    # Therefore, we return the list of todos, now in the correct order, which will be auto-converted to FT for us.
+    # Therefore, we return the list of posts, now in the correct order, which will be auto-converted to FT for us.
     # In this case, it's not strictly necessary, because sortable.js has already reorder the DOM elements.
     # However, by returning the updated data, we can be assured that there aren't sync issues between the DOM
     # and the server.
-    return tuple(todos(order_by='priority'))
+    return tuple(posts(order_by='points'))
 
 # Refactoring components in FastHTML is as simple as creating Python functions.
 # `clr_details` creates a div to clear the details of the current Todo.
-def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-todo')
+def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-post')
 
-# The `clr_details` function creates a Div with specific HTMX attributes.
-# `hx_swap_oob='innerHTML'` tells HTMX to swap the inner HTML of the target element out-of-band,
-# meaning it will update this element regardless of where the HTMX request originated from.
-def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-todo')
+# SWYX: possible duplicate, commented out
+# # The `clr_details` function creates a Div with specific HTMX attributes.
+# # `hx_swap_oob='innerHTML'` tells HTMX to swap the inner HTML of the target element out-of-band,
+# # meaning it will update this element regardless of where the HTMX request originated from.
+# def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-post')
 
 # This route handler uses a path parameter `{id}` which is automatically parsed and passed as an int.
-@rt("/todos/{id}")
+@rt("/posts/{id}")
 def delete(id:int):
     # The `delete` method is part of the MiniDataAPI spec, removing the item with the given primary key.
-    todos.delete(id)
+    posts.delete(id)
     # Returning `clr_details()` ensures the details view is cleared after deletion,
     # leveraging HTMX's out-of-band swap feature.
     # Note that we are not returning *any* FT component that doesn't have an "OOB" swap, so the target element
@@ -252,40 +280,43 @@ def delete(id:int):
 async def get(id:int):
     # The `hx_put` attribute tells HTMX to send a PUT request when the form is submitted.
     # `target_id` specifies which element will be updated with the server's response.
-    res = Form(Group(Input(id="title"), Button("Save")),
-        Hidden(id="id"), Checkbox(id="done", label='Done'),
+    res = Form(Group(Input(id="title"), Input(id="url"),  Input(id="owner"),  Input(id="created_at"),  Input(id="points"), Button("Save")),
+        Hidden(id="id"), Checkbox(id="read", label='Read'),
         Textarea(id="details", name="details", rows=10),
-        hx_put="/", target_id=f'todo-{id}', id="edit")
+        hx_put="/", target_id=f'post-{id}', id="edit")
     # `fill_form` populates the form with existing todo data, and returns the result.
     # Indexing into a table (`todos`) queries by primary key, which is `id` here. It also includes
     # `xtra`, so this will only return the id if it belongs to the current user.
-    return fill_form(res, todos[id])
+    return fill_form(res, posts[id])
 
 @rt("/")
-async def put(todo: Todo):
+async def put(post: Post):
     # `upsert` and `update` are both part of the MiniDataAPI spec, updating or inserting an item.
     # Note that the updated/inserted todo is returned. By returning the updated todo, we can update the list directly.
     # Because we return a tuple with `clr_details()`, the details view is also cleared.
-    return todos.upsert(todo), clr_details()
+    return posts.upsert(post), clr_details()
 
 @rt("/")
-async def post(todo:Todo):
-    # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
-    # This is used to clear the input field after adding the new todo.
-    new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
-    # `insert` returns the inserted todo, which is appended to the start of the list, because we used
-    # `hx_swap='afterbegin'` when creating the todo list form.
-    return todos.insert(todo), new_inp
+async def post(auth, _post:Post):
+    # # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
+    # # This is used to clear the input field after adding the new todo.
+    # new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
+    # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)", hx_swap_oob='true')
+    # dummy = Input(id="new-dummy", name="dummy", placeholder="Dummy")
+    # # `insert` returns the inserted todo, which is appended to the start of the list, because we used
+    # # `hx_swap='afterbegin'` when creating the todo list form.
+    posts.insert(_post)
+    return home(auth)
 
-@rt("/todos/{id}")
+@rt("/posts/{id}")
 async def get(id:int):
-    todo = todos[id]
+    post = posts[id]
     # `hx_swap` determines how the update should occur. We use "outerHTML" to replace the entire todo `Li` element.
-    btn = Button('delete', hx_delete=f'/todos/{todo.id}',
-                 target_id=f'todo-{todo.id}', hx_swap="outerHTML")
+    btn = Button('delete', hx_delete=f'/posts/{post.id}',
+                 target_id=f'post-{post.id}', hx_swap="outerHTML")
     # The "markdown" class is used here because that's the CSS selector we used in the JS earlier.
     # Therefore this will trigger the JS to parse the markdown in the details field.
     # Because `class` is a reserved keyword in Python, we use `cls` instead, which FastHTML auto-converts.
-    return Div(H2(todo.title), Div(todo.details, cls="markdown"), btn)
+    return Div(H2(post.title), Div(post.details, cls="markdown"), btn)
 
 serve()
