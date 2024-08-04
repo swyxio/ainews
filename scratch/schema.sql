@@ -1,6 +1,6 @@
 -- User table
 CREATE TABLE User (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT PRIMARY KEY,
     pseudonym TEXT UNIQUE NOT NULL,
     markdown_bio TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -8,9 +8,9 @@ CREATE TABLE User (
 
 -- Comment table
 CREATE TABLE Comment (
-    comment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id TEXT PRIMARY KEY,
     user_id INTEGER,
-    parent_comment_id INTEGER,
+    parent_id INTEGER,
     content TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES User(user_id),
@@ -19,14 +19,16 @@ CREATE TABLE Comment (
 
 -- Tag table
 CREATE TABLE Tag (
-    tag_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL
+    tag_id TEXT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT
 );
 
 -- Tag Group table
 CREATE TABLE TagGroup (
-    group_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL
+    group_id TEXT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT
 );
 
 -- Tag Group Association table
@@ -40,7 +42,7 @@ CREATE TABLE TagGroupAssociation (
 
 -- Source table (abstract table for different types of sources)
 CREATE TABLE Source (
-    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id TEXT PRIMARY KEY,
     url TEXT UNIQUE NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
@@ -50,48 +52,48 @@ CREATE TABLE Source (
 
 -- Submission table (inherits from Source)
 CREATE TABLE Submission (
-    source_id INTEGER PRIMARY KEY,
+    source_id TEXT PRIMARY KEY,
     user_id INTEGER,
     FOREIGN KEY (source_id) REFERENCES Source(source_id),
     FOREIGN KEY (user_id) REFERENCES User(user_id)
 );
 
 
--- Discussion Topic table
-CREATE TABLE DiscussionTopic (
-    topic_id INTEGER PRIMARY KEY AUTOINCREMENT,
+-- Post table
+CREATE TABLE Post (
+    post_id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
     rank INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Discussion Topic Source Association table
-CREATE TABLE DiscussionTopicSource (
-    topic_id INTEGER,
+-- Post Source Association table
+CREATE TABLE PostSource (
+    post_id INTEGER,
     source_id INTEGER,
-    PRIMARY KEY (topic_id, source_id),
-    FOREIGN KEY (topic_id) REFERENCES DiscussionTopic(topic_id),
+    PRIMARY KEY (post_id, source_id),
+    FOREIGN KEY (post_id) REFERENCES Post(post_id),
     FOREIGN KEY (source_id) REFERENCES Source(source_id)
 );
 
--- Discussion Topic Tag Association table
-CREATE TABLE DiscussionTopicTag (
-    topic_id INTEGER,
+-- Post Tag Association table
+CREATE TABLE PostTag (
+    post_id INTEGER,
     tag_id INTEGER,
-    PRIMARY KEY (topic_id, tag_id),
-    FOREIGN KEY (topic_id) REFERENCES DiscussionTopic(topic_id),
+    PRIMARY KEY (post_id, tag_id),
+    FOREIGN KEY (post_id) REFERENCES Post(post_id),
     FOREIGN KEY (tag_id) REFERENCES Tag(tag_id)
 );
 
 -- Bookmark table
 CREATE TABLE Bookmark (
-    bookmark_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bookmark_id TEXT PRIMARY KEY,
     user_id INTEGER,
-    topic_id INTEGER,
+    post_id INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES User(user_id),
-    FOREIGN KEY (topic_id) REFERENCES DiscussionTopic(topic_id)
+    FOREIGN KEY (post_id) REFERENCES Post(post_id)
 );
 
 -- Friends table
@@ -104,24 +106,24 @@ CREATE TABLE Friends (
     FOREIGN KEY (friend_id) REFERENCES User(user_id)
 );
 
--- Vote table for Discussion Topics
-CREATE TABLE DiscussionTopicVote (
-    vote_id INTEGER PRIMARY KEY AUTOINCREMENT,
+-- Vote table for Posts
+CREATE TABLE PostVote (
+    vote_id TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    topic_id INTEGER NOT NULL,
+    post_id INTEGER NOT NULL,
     vote_type INTEGER NOT NULL, -- 1 for upvote, -1 for downvote
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES User(user_id),
-    FOREIGN KEY (topic_id) REFERENCES DiscussionTopic(topic_id),
-    UNIQUE(user_id, topic_id) -- Ensures a user can only have one vote per topic
+    FOREIGN KEY (post_id) REFERENCES Post(post_id),
+    UNIQUE(user_id, post_id) -- Ensures a user can only have one vote per post
 );
 
 -- Index for faster lookups
-CREATE INDEX idx_discussion_topic_vote_user_topic ON DiscussionTopicVote(user_id, topic_id);
+CREATE INDEX idx_post_vote_user_post ON PostVote(user_id, post_id);
 
 -- Vote table for Comments
 CREATE TABLE CommentVote (
-    vote_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vote_id TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL,
     comment_id INTEGER NOT NULL,
     vote_type INTEGER NOT NULL, -- 1 for upvote, -1 for downvote
