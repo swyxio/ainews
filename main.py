@@ -37,8 +37,8 @@ setup_database('./data/ainews.db')
 # The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
 db = database('./data/ainews.db')
 
-posts, users = db.t.posts, db.t.users
-Post,User = posts.dataclass(),users.dataclass()
+posts, user = db.t.posts, db.t.user
+Post,User = posts.dataclass(),user.dataclass()
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -133,13 +133,13 @@ def post(login:Login, sess):
     if not login.name or not login.pwd: return login_redir
     # Indexing into a MiniDataAPI table queries by primary key, which is `name` here.
     # It returns a dataclass object, if `dataclass()` has been called at some point, or a dict otherwise.
-    try: u = users[login.name]
+    try: u = user[login.name]
     # If the primary key does not exist, the method raises a `NotFoundError`.
     # Here we use this to just generate a user -- in practice you'd probably to redirect to a signup page.
     except NotFoundError:
       import uuid
       login.id = uuid.uuid4()
-      u = users.insert(login)
+      u = user.insert(login)
     # This compares the passwords using a constant time string comparison
     # https://sqreen.github.io/DevelopersSecurityBestPractices/timing-attack/python
     if not compare_digest(u.pwd.encode("utf-8"), login.pwd.encode("utf-8")): return login_redir
@@ -210,7 +210,7 @@ def home(auth):
     # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/upvote`
     # handler to be called.
 
-    data = str(db.q(f"SELECT * FROM {myuser}"))
+    data = str(db.q(f"SELECT * FROM {user}"))
 
     output = Div(data)
     frm = Form(*posts(order_by='points'),
