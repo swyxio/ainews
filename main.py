@@ -1,6 +1,6 @@
 
 from fasthtml.common import *
-from extensions import A2, display_time, display_url
+from extensions import A2, display_time, display_url, page_header
 from datetime import datetime
 
 from hmac import compare_digest
@@ -48,7 +48,14 @@ def before(req, sess):
     # print('reqsget', req.scope)
     auth = req.scope['auth'] = sess.get('auth', None)
     # If the session key is not there, it redirects to the login page.
-    privateroutes = ['/profile']
+    privateroutes = ['/profile', '/submit']
+    print('auth', auth)
+    print('req.url.path', req.url.path)
+    # Query for username from auth. todo: refactor to put in beforeware
+    try:
+        auth = next(db.query("SELECT * FROM user WHERE user_id = ?", [auth]))
+    except:
+        auth = None
     if not auth and (req.method != 'GET' or req.url.path in privateroutes): return login_redir
     # # `xtra` is part of the MiniDataAPI spec. It adds a filter to queries and DDL statements,
     # # to ensure that the user can only see/edit their own todos.
@@ -175,7 +182,7 @@ def profile(auth):
     # Fetch user data
     _user = next(db.query(
               "select * from user where user_id = :user_id",
-              {"user_id": auth}
+              {"user_id": auth.user_id}
           ))
     
     # Create a list of user fields
@@ -248,18 +255,6 @@ def renderPost(self):
 # def get(auth):
 @app.get("/")
 def home(auth):
-    # Query for username from auth
-    try:
-        u = next(db.query("SELECT * FROM user WHERE user_id = ?", [auth]))
-    except:
-        auth = None
-    title = f"AI News - Welcome {u['username'] if auth else ''}"
-    top = Grid(H1(title), 
-               Div(
-                   A2('submit', href='/submit'), 
-                   '|',
-                   A2(u['username'], href='/profile') if auth else A2('login', href='/login') , 
-                   style='text-align: right'))
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
     # new_inp = Input(id="new-title", name="title", placeholder="New Post")
@@ -307,13 +302,12 @@ def home(auth):
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
-    return Title(title), Container(top, card) # output, card)
+
+    return page_header("AI News Home", auth, card)
 
 # swyx: submit page
 @app.get("/submit")
 def get(auth):
-    title = f"Submit AI News - by {auth}"
-    top = Grid(H1(title), Div(A2(auth, href='/profile'), style='text-align: right'))
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
     new_inp = Input(id="new-title", name="title", placeholder="Post Title")
@@ -334,7 +328,9 @@ def get(auth):
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
-    return Title(title), Container(top, card)
+    
+    # Query for username from auth. todo: refactor to put in beforeware
+    return page_header("Submit AI News", auth, card)
 
 # # This is the handler for the reordering of todos.
 # # It's a POST request, which is used by the 'sortable' js library.
@@ -407,7 +403,7 @@ async def addPost(auth, _post:Post):
     # # `insert` returns the inserted todo, which is appended to the start of the list, because we used
     # # `hx_swap='afterbegin'` when creating the todo list form.
     _post.created_at = datetime.now().isoformat()
-    _post.owner = auth
+    _post.user_id = auth.user_id
 
     # just for demo purposes, comment out in future
     import random
