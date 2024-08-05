@@ -1,10 +1,10 @@
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440000", "pseudonym": "john_doe1", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe1"}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440001", "pseudonym": "john_doe2", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe2"}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440002", "pseudonym": "jane_smith", "email": "jane@example.com", "password": "password123", "markdown_bio": "I am Jane Smith, a tech enthusiast."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440003", "pseudonym": "alex_johnson", "email": "alex@example.com", "password": "securepass", "markdown_bio": "Alex Johnson here, passionate about AI and robotics."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440004", "pseudonym": "emily_brown", "email": "emily@example.com", "password": "brownie22", "markdown_bio": "Emily Brown, data scientist and machine learning expert."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440005", "pseudonym": "michael_lee", "email": "michael@example.com", "password": "lee1234", "markdown_bio": "Michael Lee, software engineer with a focus on neural networks."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440006", "pseudonym": "sarah_wilson", "email": "sarah@example.com", "password": "wilson567", "markdown_bio": "Sarah Wilson, AI researcher and tech blogger."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440000", "username": "john_doe1", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe1"}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440001", "username": "john_doe2", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe2"}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440002", "username": "jane_smith", "email": "jane@example.com", "password": "password123", "markdown_bio": "I am Jane Smith, a tech enthusiast."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440003", "username": "alex_johnson", "email": "alex@example.com", "password": "securepass", "markdown_bio": "Alex Johnson here, passionate about AI and robotics."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440004", "username": "emily_brown", "email": "emily@example.com", "password": "brownie22", "markdown_bio": "Emily Brown, data scientist and machine learning expert."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440005", "username": "michael_lee", "email": "michael@example.com", "password": "lee1234", "markdown_bio": "Michael Lee, software engineer with a focus on neural networks."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440006", "username": "sarah_wilson", "email": "sarah@example.com", "password": "wilson567", "markdown_bio": "Sarah Wilson, AI researcher and tech blogger."}
 
 
 {"type":"friend", "user_id": "550e8400-e29b-41d4-a716-446655440000", "friend_id": "550e8400-e29b-41d4-a716-446655440001"}
@@ -19,6 +19,11 @@
 {"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440004", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
 
 {"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440005", "title": "Sample Article 1", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440006", "title": "Sample Article 2", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440007", "title": "Sample Article 3", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
+{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440008", "title": "Sample Article 4", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
+{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440009", "title": "Sample Article 5", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
+{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440001", "title": "Sample Article 6", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
 
 {"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440002"}
 {"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440003"}

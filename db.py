@@ -14,14 +14,14 @@ def setup_database(db):
     # user table
     created = create_table_if_not_exists("user", {
         "user_id": str,
-        "pseudonym": str,
+        "username": str,
         "password": str,
         "markdown_bio": str,
         "email": str,
         "created_at": str
-    }, pk="user_id", not_null={"pseudonym"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
+    }, pk="user_id", not_null={"username"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["user"].create_index(["pseudonym"], unique=True)
+        db["user"].create_index(["username"], unique=True)
     
 
     # tag table

@@ -1,7 +1,7 @@
 -- User table
 CREATE TABLE User (
     user_id TEXT PRIMARY KEY,
-    pseudonym TEXT UNIQUE NOT NULL,
+    username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     markdown_bio TEXT,
