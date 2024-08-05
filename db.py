@@ -15,6 +15,7 @@ def setup_database(db_path):
     created = create_table_if_not_exists("User", {
         "user_id": str,
         "pseudonym": str,
+        "password": str,
         "markdown_bio": str,
         "created_at": str
     }, pk="user_id", not_null={"pseudonym"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
@@ -40,6 +41,7 @@ def setup_database(db_path):
         db["User"].insert({
             "user_id": user_id,
             "pseudonym": pseudonym,
+            "password": "password",
             "markdown_bio": f"I am {pseudonym}"
         })
     else:
@@ -109,6 +111,8 @@ def setup_database(db_path):
     created = create_table_if_not_exists("Post", {
         "post_id": str,
         "title": str,
+        "user_id": str,
+        "primary_source_id": str,
         "description": str,
         "rank": int,
         "created_at": str
@@ -144,14 +148,14 @@ def setup_database(db_path):
         db["Bookmark"].add_foreign_key("post_id", "Post", "post_id")
 
     # Friends table
-    created = create_table_if_not_exists("Friends", {
+    created = create_table_if_not_exists("Friend", {
         "user_id": str,
         "friend_id": str,
         "created_at": str
     }, pk=("user_id", "friend_id"), defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["Friends"].add_foreign_key("user_id", "User", "user_id")
-        db["Friends"].add_foreign_key("friend_id", "User", "user_id")
+        db["Friend"].add_foreign_key("user_id", "User", "user_id")
+        db["Friend"].add_foreign_key("friend_id", "User", "user_id")
 
     # PostVote table
     created = create_table_if_not_exists("PostVote", {
@@ -191,3 +195,7 @@ def print_schema(db):
         print(create_sql)
 
     print("\nSchema dump complete.")
+
+
+
+
