@@ -1,4 +1,4 @@
-from fasthtml.common import A
+from fasthtml.common import A, Grid, Container
 from fastcore.xml import *
 from datetime import datetime
 
@@ -41,7 +41,16 @@ def display_url(url, title, timestr, owner):
         show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
     return show
     
+def page_header(_title, auth, *args): 
+  title = f"{_title} - Welcome {auth['username'] if auth else ''}"
+  top = Grid(H1(title), 
+              Div(
+                  A2('submit', href='/submit'), 
+                  '|',
+                  A2(auth['username'], href='/profile') if auth else A2('login', href='/login') , 
+                  style='text-align: right'))
+  return Title(title), Container(top, *args)
 
 
-__all__ = ['A2', 'display_time', 'display_url']
+__all__ = ['A2', 'display_time', 'display_url', 'page_header']
 
