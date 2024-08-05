@@ -21,20 +21,19 @@ from fasthtml.common import (
 )
 """
 
-import sqlite_utils
-
 
 from hmac import compare_digest
-
 from db import setup_database
+import sqlite_utils
 
-# Assuming the database path is provided or set as a constant
-DATABASE_PATH = "my_database.db"
-setup_database('./data/ainews.db')
+db = sqlite_utils.Database("./data/ainews.db", recreate=True)
+setup_database(db)
+
+import seed
+seed.seed_objects(db)
+db.close()
 
 
-# Although you can just use dicts, it can be helpful to have types for your DB objects.
-# The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
 db = database('./data/ainews.db')
 
 comment, tag, tagGroup, tagGroupAssociation, source, submission = db.t.comment, db.t.tag, db.t.tagGroup, db.t.tagGroupAssociation, db.t.source, db.t.submission
@@ -45,6 +44,8 @@ User, Post, PostSource, PostTag, Bookmark, Friend, PostVote, CommentVote  = user
 
 posts = db.t.posts
 Posts = posts.dataclass()
+
+
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.

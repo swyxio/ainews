@@ -1,8 +1,42 @@
 import sqlite_utils
+import threading
+from typing import Dict, Any
 
-def setup_database(db_path):
-    db = sqlite_utils.Database(db_path)
+# class DbConnectionManager:
+#     def __init__(self, db_path: str):
+#         self.db_path = db_path
+#         self.local = threading.local()
 
+#     def get_connection(self) -> sqlite_utils.Database:
+#         if not hasattr(self.local, 'connection'):
+#             self.local.connection = sqlite_utils.Database(self.db_path, recreate=True)
+#         return self.local.connection
+
+#     def close_connection(self):
+#         if hasattr(self.local, 'connection'):
+#             self.local.connection.conn.close()
+#             del self.local.connection
+
+#     def execute(self, sql: str, parameters: Dict[str, Any] = None):
+#         db = self.get_connection()
+#         return db.execute(sql, parameters or {})
+
+#     def query(self, sql: str, parameters: Dict[str, Any] = None):
+#         db = self.get_connection()
+#         return db.query(sql, parameters or {})
+
+#     def table(self, name: str):
+#         db = self.get_connection()
+#         return db[name]
+    
+    
+#     @property
+#     def tables(self):
+#         db = self.get_connection()
+#         return db.table_names() 
+    
+
+def setup_database(db):
     def create_table_if_not_exists(table_name, schema, **kwargs):
         if table_name not in db.table_names():
             db[table_name].create(schema, **kwargs)
@@ -11,83 +45,48 @@ def setup_database(db_path):
         else:
             return False
 
-    # User table
-    created = create_table_if_not_exists("User", {
+    # user table
+    created = create_table_if_not_exists("user", {
         "user_id": str,
         "pseudonym": str,
         "password": str,
         "markdown_bio": str,
+        "email": str,
         "created_at": str
     }, pk="user_id", not_null={"pseudonym"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["User"].create_index(["pseudonym"], unique=True)
+        db["user"].create_index(["pseudonym"], unique=True)
     
-    user_count = next(db.query("SELECT count(*) FROM User"))['count(*)']
-    if user_count < 1:
-        print("No users found.  Creating  one.")
 
-        import random
-        import string
-
-        def generate_random_username(length=8):
-            letters = string.ascii_lowercase
-            return ''.join(random.choice(letters) for i in range(length))
-
-        pseudonym = generate_random_username()
-
-        import uuid
-        user_id = str(uuid.uuid4())
-
-        db["User"].insert({
-            "user_id": user_id,
-            "pseudonym": pseudonym,
-            "password": "password",
-            "markdown_bio": f"I am {pseudonym}"
-        })
-    else:
-        print("Users found.")
-
-    # Comment table
-    created = create_table_if_not_exists("Comment", {
-        "comment_id": str,
-        "user_id": str,
-        "parent_id": str,
-        "content": str,
-        "created_at": str
-    }, pk="comment_id", not_null={"content"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
-    if created:
-        db["Comment"].add_foreign_key("user_id", "User", "user_id")
-        db["Comment"].add_foreign_key("parent_id", "Comment", "comment_id")
-
-    # Tag table
-    created = create_table_if_not_exists("Tag", {
+    # tag table
+    created = create_table_if_not_exists("tag", {
         "tag_id": str,
         "name": str,
         "description": str
     }, pk="tag_id", not_null={"name"})
     if created:
-        db["Tag"].create_index(["name"], unique=True)
+        db["tag"].create_index(["name"], unique=True)
 
-    # TagGroup table
-    created = create_table_if_not_exists("TagGroup", {
+    # tag_group table
+    created = create_table_if_not_exists("tag_group", {
         "group_id": str,
         "name": str,
         "description": str
     }, pk="group_id", not_null={"name"})
     if created: 
-        db["TagGroup"].create_index(["name"], unique=True)
+        db["tag_group"].create_index(["name"], unique=True)
 
-    # TagGroupAssociation table
-    created= create_table_if_not_exists("TagGroupAssociation", {
+    # tag_group_association table
+    created= create_table_if_not_exists("tag_group_association", {
         "group_id": str,
         "tag_id": str
     }, pk=("group_id", "tag_id"))
     if created:
-        db["TagGroupAssociation"].add_foreign_key("group_id", "TagGroup", "group_id")
-        db["TagGroupAssociation"].add_foreign_key("tag_id", "Tag", "tag_id")
+        db["tag_group_association"].add_foreign_key("group_id", "tag_group", "group_id")
+        db["tag_group_association"].add_foreign_key("tag_id", "tag", "tag_id")
 
-    # Source table
-    created= create_table_if_not_exists("Source", {
+    # source table
+    created= create_table_if_not_exists("source", {
         "source_id": str,
         "url": str,
         "title": str,
@@ -96,19 +95,19 @@ def setup_database(db_path):
         "created_at": str
     }, pk="source_id", not_null={"url", "title", "source_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["Source"].create_index(["url"], unique=True)
+        db["source"].create_index(["url"], unique=True)
 
-    # Submission table
-    created = create_table_if_not_exists("Submission", {
+    # submission table
+    created = create_table_if_not_exists("submission", {
         "source_id": str,
         "user_id": str
     }, pk="source_id")
     if created:
-        db["Submission"].add_foreign_key("source_id", "Source", "source_id")
-        db["Submission"].add_foreign_key("user_id", "User", "user_id")
+        db["submission"].add_foreign_key("source_id", "source", "source_id")
+        db["submission"].add_foreign_key("user_id", "user", "user_id")
 
-    # Post table
-    created = create_table_if_not_exists("Post", {
+    # post table
+    created = create_table_if_not_exists("post", {
         "post_id": str,
         "title": str,
         "user_id": str,
@@ -118,47 +117,62 @@ def setup_database(db_path):
         "created_at": str
     }, pk="post_id", not_null={"title"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
 
-    # PostSource table
-    created = create_table_if_not_exists("PostSource", {
+
+    # post_source table
+    created = create_table_if_not_exists("post_source", {
         "post_id": str,
         "source_id": str
     }, pk=("post_id", "source_id"))
     if created:
-        db["PostSource"].add_foreign_key("post_id", "Post", "post_id")
-        db["PostSource"].add_foreign_key("source_id", "Source", "source_id")
+        db["post_source"].add_foreign_key("post_id", "post", "post_id")
+        db["post_source"].add_foreign_key("source_id", "source", "source_id")
 
-    # PostTag table
-    created = create_table_if_not_exists("PostTag", {
+    # post_tag table
+    created = create_table_if_not_exists("post_tag", {
         "post_id": str,
         "tag_id": str
     }, pk=("post_id", "tag_id"))
     if created:
-        db["PostTag"].add_foreign_key("post_id", "Post", "post_id")
-        db["PostTag"].add_foreign_key("tag_id", "Tag", "tag_id")
+        db["post_tag"].add_foreign_key("post_id", "post", "post_id")
+        db["post_tag"].add_foreign_key("tag_id", "tag", "tag_id")
 
-    # Bookmark table
-    created = create_table_if_not_exists("Bookmark", {
+    # comment table
+    created = create_table_if_not_exists("comment", {
+        "comment_id": str,
+        "user_id": str,
+        "parent_id": str,
+        "post_id": str,
+        "content": str,
+        "created_at": str
+    }, pk="comment_id", not_null={"content"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
+    if created:
+        db["comment"].add_foreign_key("user_id", "user", "user_id")
+        db["comment"].add_foreign_key("post_id", "post", "post_id")
+        db["comment"].add_foreign_key("parent_id", "comment", "comment_id")
+
+    # bookmark table
+    created = create_table_if_not_exists("bookmark", {
         "bookmark_id": str,
         "user_id": str,
         "post_id": str,
         "created_at": str
     }, pk="bookmark_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["Bookmark"].add_foreign_key("user_id", "User", "user_id")
-        db["Bookmark"].add_foreign_key("post_id", "Post", "post_id")
+        db["bookmark"].add_foreign_key("user_id", "user", "user_id")
+        db["bookmark"].add_foreign_key("post_id", "post", "post_id")
 
-    # Friends table
-    created = create_table_if_not_exists("Friend", {
+    # friends table
+    created = create_table_if_not_exists("friend", {
         "user_id": str,
         "friend_id": str,
         "created_at": str
     }, pk=("user_id", "friend_id"), defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["Friend"].add_foreign_key("user_id", "User", "user_id")
-        db["Friend"].add_foreign_key("friend_id", "User", "user_id")
+        db["friend"].add_foreign_key("user_id", "user", "user_id")
+        db["friend"].add_foreign_key("friend_id", "user", "user_id")
 
-    # PostVote table
-    created = create_table_if_not_exists("PostVote", {
+    # post_vote table
+    created = create_table_if_not_exists("post_vote", {
         "vote_id": str,
         "user_id": str,
         "post_id": str,
@@ -166,12 +180,12 @@ def setup_database(db_path):
         "created_at": str
     }, pk="vote_id", not_null={"user_id", "post_id", "vote_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["PostVote"].add_foreign_key("user_id", "User", "user_id")
-        db["PostVote"].add_foreign_key("post_id", "Post", "post_id")
-        db["PostVote"].create_index(["user_id", "post_id"], unique=True)
+        db["post_vote"].add_foreign_key("user_id", "user", "user_id")
+        db["post_vote"].add_foreign_key("post_id", "post", "post_id")
+        db["post_vote"].create_index(["user_id", "post_id"], unique=True)
 
-    # CommentVote table
-    created = create_table_if_not_exists("CommentVote", {
+    # comment_vote table
+    created = create_table_if_not_exists("comment_vote", {
         "vote_id": str,
         "user_id": str,
         "comment_id": str,
@@ -179,11 +193,10 @@ def setup_database(db_path):
         "created_at": str
     }, pk="vote_id", not_null={"user_id", "comment_id", "vote_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["CommentVote"].add_foreign_key("user_id", "User", "user_id")
-        db["CommentVote"].add_foreign_key("comment_id", "Comment", "comment_id")
-        db["CommentVote"].create_index(["user_id", "comment_id"], unique=True)
+        db["comment_vote"].add_foreign_key("user_id", "user", "user_id")
+        db["comment_vote"].add_foreign_key("comment_id", "comment", "comment_id")
+        db["comment_vote"].create_index(["user_id", "comment_id"], unique=True)
 
-    # print_schema(db)
 
 def print_schema(db):
     print("\nDatabase schema setup complete.")
@@ -195,6 +208,9 @@ def print_schema(db):
         print(create_sql)
 
     print("\nSchema dump complete.")
+
+
+
 
 
 
