@@ -1,0 +1,70 @@
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440000", "pseudonym": "john_doe1", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe1"}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440001", "pseudonym": "john_doe2", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe2"}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440002", "pseudonym": "jane_smith", "email": "jane@example.com", "password": "password123", "markdown_bio": "I am Jane Smith, a tech enthusiast."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440003", "pseudonym": "alex_johnson", "email": "alex@example.com", "password": "securepass", "markdown_bio": "Alex Johnson here, passionate about AI and robotics."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440004", "pseudonym": "emily_brown", "email": "emily@example.com", "password": "brownie22", "markdown_bio": "Emily Brown, data scientist and machine learning expert."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440005", "pseudonym": "michael_lee", "email": "michael@example.com", "password": "lee1234", "markdown_bio": "Michael Lee, software engineer with a focus on neural networks."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440006", "pseudonym": "sarah_wilson", "email": "sarah@example.com", "password": "wilson567", "markdown_bio": "Sarah Wilson, AI researcher and tech blogger."}
+
+
+{"type":"friend", "user_id": "550e8400-e29b-41d4-a716-446655440000", "friend_id": "550e8400-e29b-41d4-a716-446655440001"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440002", "url": "https://example.com/article1", "title": "Sample Article 1", "description": "This is a sample article for testing", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440002", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440003", "url": "https://example.com/video1", "title": "Sample Video 1", "description": "This is a sample video for testing", "source_type": "video"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440003", "user_id": "550e8400-e29b-41d4-a716-446655440001"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440004", "url": "https://example.com/podcast1", "title": "Sample Podcast 1", "description": "This is a sample podcast for testing", "source_type": "podcast"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440004", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
+
+{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440005", "title": "Sample Article 1", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+
+{"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440002"}
+{"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440003"}
+{"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440004"}
+
+{"type": "tag", "tag_id": "550e8400-e29b-41d4-a716-446655440006", "name": "AI", "description": "Artificial Intelligence related content"}
+{"type": "tag", "tag_id": "550e8400-e29b-41d4-a716-446655440007", "name": "Machine Learning", "description": "Topics related to machine learning and data science"}
+{"type": "tag", "tag_id": "550e8400-e29b-41d4-a716-446655440008", "name": "Robotics", "description": "Content about robotics and automation"}
+{"type": "tag", "tag_id": "550e8400-e29b-41d4-a716-446655440009", "name": "Neural Networks", "description": "Information about neural networks and deep learning"}
+
+{"type": "tag_group", "group_id": "550e8400-e29b-41d4-a716-446655440010", "name": "AI Technologies", "description": "Group for various AI-related technologies"}
+{"type": "tag_group", "group_id": "550e8400-e29b-41d4-a716-446655440011", "name": "Data Science", "description": "Group for data science and analytics topics"}
+
+{"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440010", "tag_id": "550e8400-e29b-41d4-a716-446655440006"}
+{"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440010", "tag_id": "550e8400-e29b-41d4-a716-446655440008"}
+{"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440010", "tag_id": "550e8400-e29b-41d4-a716-446655440009"}
+
+{"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440011", "tag_id": "550e8400-e29b-41d4-a716-446655440007"}
+{"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440011", "tag_id": "550e8400-e29b-41d4-a716-446655440009"}
+
+{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440006"}
+{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440007"}
+{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440008"}
+{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440009"}
+
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "user_id": "550e8400-e29b-41d4-a716-446655440001", "parent_id": null, "content": "Great article! I found the insights on AI very informative.", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440013", "user_id": "550e8400-e29b-41d4-a716-446655440002", "parent_id": "550e8400-e29b-41d4-a716-446655440012", "content": "I appreciate the comprehensive overview of machine learning techniques presented in this post.", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440014", "user_id": "550e8400-e29b-41d4-a716-446655440003", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "The section on robotics applications was particularly fascinating. Looking forward to more content like this!", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440015", "user_id": "550e8400-e29b-41d4-a716-446655440004", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "As a data scientist, I found the discussion on neural networks extremely relevant. Great job!", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440016", "user_id": "550e8400-e29b-41d4-a716-446655440005", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "This article provides a solid foundation for understanding the intersection of AI and software engineering. Well done!", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440017", "user_id": "550e8400-e29b-41d4-a716-446655440006", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "As an AI researcher, I appreciate the depth of analysis in this post. It's a valuable resource for both beginners and experts in the field.", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440018", "user_id": "550e8400-e29b-41d4-a716-446655440000", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "vote_type": 1}
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440019", "user_id": "550e8400-e29b-41d4-a716-446655440001", "comment_id": "550e8400-e29b-41d4-a716-446655440013", "vote_type": 1}
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440020", "user_id": "550e8400-e29b-41d4-a716-446655440002", "comment_id": "550e8400-e29b-41d4-a716-446655440014", "vote_type": -1}
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440021", "user_id": "550e8400-e29b-41d4-a716-446655440003", "comment_id": "550e8400-e29b-41d4-a716-446655440015", "vote_type": 1}
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440022", "user_id": "550e8400-e29b-41d4-a716-446655440004", "comment_id": "550e8400-e29b-41d4-a716-446655440016", "vote_type": 1}
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440023", "user_id": "550e8400-e29b-41d4-a716-446655440005", "comment_id": "550e8400-e29b-41d4-a716-446655440017", "vote_type": -1}
+{"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440024", "user_id": "550e8400-e29b-41d4-a716-446655440006", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "vote_type": 1}
+
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440025", "user_id": "550e8400-e29b-41d4-a716-446655440000", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440026", "user_id": "550e8400-e29b-41d4-a716-446655440001", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440027", "user_id": "550e8400-e29b-41d4-a716-446655440002", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": -1}
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440028", "user_id": "550e8400-e29b-41d4-a716-446655440003", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440029", "user_id": "550e8400-e29b-41d4-a716-446655440004", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440030", "user_id": "550e8400-e29b-41d4-a716-446655440005", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": -1}
+{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440031", "user_id": "550e8400-e29b-41d4-a716-446655440006", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+
+

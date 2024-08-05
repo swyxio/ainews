@@ -23,24 +23,31 @@ from fasthtml.common import (
 )
 """
 
-import sqlite_utils
-
 
 from hmac import compare_digest
-
 from db import setup_database
+import sqlite_utils
 
-# Assuming the database path is provided or set as a constant
-DATABASE_PATH = "my_database.db"
-setup_database('./data/ainews.db')
+db = sqlite_utils.Database("./data/ainews.db", recreate=True)
+setup_database(db)
+
+import seed
+seed.seed_objects(db)
+db.close()
 
 
-# Although you can just use dicts, it can be helpful to have types for your DB objects.
-# The `dataclass` method creates that type, and stores it in the object, so it will use it for any returned items.
 db = database('./data/ainews.db')
 
-posts, user = db.t.posts, db.t.user
-Post,User = posts.dataclass(),user.dataclass()
+comment, tag, tagGroup, tagGroupAssociation, source, submission = db.t.comment, db.t.tag, db.t.tagGroup, db.t.tagGroupAssociation, db.t.source, db.t.submission
+user, post, postSource, postTag, bookmark, friend, postVote, commentVote = db.t.user, db.t.post, db.t.postSource, db.t.postTag, db.t.bookmark, db.t.friend, db.t.postVote, db.t.commentVote
+
+Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass()
+User, Post, PostSource, PostTag, Bookmark, Friend, PostVote, CommentVote  = user.dataclass(), post.dataclass(), postSource.dataclass(), postTag.dataclass(), bookmark.dataclass(), friend.dataclass(), postVote.dataclass(), commentVote.dataclass()
+
+posts = db.t.posts
+Posts = posts.dataclass()
+
+
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -397,6 +404,10 @@ async def get(id:int):
 @app.get("/tables")
 async def get_tables():
     return {"tables": list(db.t)}
+
+@app.get("/seed")
+async def seed():
+    user
 
 @app.get("/schema/{table_name}")
 async def get_schema(table_name: str):
