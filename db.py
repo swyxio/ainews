@@ -2,40 +2,6 @@ import sqlite_utils
 import threading
 from typing import Dict, Any
 
-# class DbConnectionManager:
-#     def __init__(self, db_path: str):
-#         self.db_path = db_path
-#         self.local = threading.local()
-
-#     def get_connection(self) -> sqlite_utils.Database:
-#         if not hasattr(self.local, 'connection'):
-#             self.local.connection = sqlite_utils.Database(self.db_path, recreate=True)
-#         return self.local.connection
-
-#     def close_connection(self):
-#         if hasattr(self.local, 'connection'):
-#             self.local.connection.conn.close()
-#             del self.local.connection
-
-#     def execute(self, sql: str, parameters: Dict[str, Any] = None):
-#         db = self.get_connection()
-#         return db.execute(sql, parameters or {})
-
-#     def query(self, sql: str, parameters: Dict[str, Any] = None):
-#         db = self.get_connection()
-#         return db.query(sql, parameters or {})
-
-#     def table(self, name: str):
-#         db = self.get_connection()
-#         return db[name]
-    
-    
-#     @property
-#     def tables(self):
-#         db = self.get_connection()
-#         return db.table_names() 
-    
-
 def setup_database(db):
     def create_table_if_not_exists(table_name, schema, **kwargs):
         if table_name not in db.table_names():
