@@ -264,7 +264,7 @@ def renderTopic(self):
 
     cts = Div(Div(rank, cls="w-12 text-right"), Div(show, Hidden(id="id", value=self['topic_id'])), cls="flex gap-4")
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
-    return Li(Form(cts), id=f'post-{self['topic_id']}', cls='list-none')
+    return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
 
 
 # This is the handler for the main todo list application.
