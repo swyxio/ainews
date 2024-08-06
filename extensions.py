@@ -1,4 +1,4 @@
-from fasthtml.common import A
+from fasthtml.common import A, Grid, Container
 from fastcore.xml import *
 from datetime import datetime
 
@@ -17,8 +17,8 @@ def display_time(timestr):
     now = datetime.now()
     if timestr:
         try:
-            created_date = datetime.strptime(timestr, "%Y-%m-%dT%H:%M:%S.%f")
-            if created_date.date() == now.date():
+            created_date = datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S")
+            if created_date.date() >= now.date():
                 created_at_str = created_date.strftime("%-I:%M %p")
             else:
                 created_at_str = created_date.strftime("%Y-%m-%d")
@@ -36,12 +36,29 @@ def display_url(url, title, timestr, owner):
         parsed_url = urlparse(url)
         if parsed_url.netloc.startswith('www.'):
             parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
-        show = (Span(title), Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")) if parsed_url.netloc == '' else (Span(A2(title, href=url)), Span(f"({parsed_url.netloc}, {created_at} by {owner})", cls="text-xs text-gray-400"))
+        show = Div(Span(title), 
+                   Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")
+              ) if parsed_url.netloc == '' else Div(
+                  Span(A2(title, href=url, target="_blank")), 
+                  Span(f"({parsed_url.netloc}, {created_at} by {owner})", cls="text-xs text-gray-400"), 
+                  cls="flex flex-col"
+              )
     except ValueError:
         show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
     return show
     
+def page_header(_title, auth, *args): 
+  title = f"{_title} - {auth['username'] if auth else ''}"
+  top = Grid(H1(title), 
+              Div(
+                  A2('home', href='/'), 
+                  '|',
+                  A2('submit', href='/submit'), 
+                  '|',
+                  A2(auth['username'], href='/profile') if auth else A2('login', href='/login') , 
+                  style='text-align: right'))
+  return Title(title), Container(top, *args)
 
 
-__all__ = ['A2', 'display_time', 'display_url']
+__all__ = ['A2', 'display_time', 'display_url', 'page_header']
 

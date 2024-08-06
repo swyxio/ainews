@@ -1,10 +1,10 @@
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440000", "pseudonym": "john_doe1", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe1"}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440001", "pseudonym": "john_doe2", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe2"}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440002", "pseudonym": "jane_smith", "email": "jane@example.com", "password": "password123", "markdown_bio": "I am Jane Smith, a tech enthusiast."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440003", "pseudonym": "alex_johnson", "email": "alex@example.com", "password": "securepass", "markdown_bio": "Alex Johnson here, passionate about AI and robotics."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440004", "pseudonym": "emily_brown", "email": "emily@example.com", "password": "brownie22", "markdown_bio": "Emily Brown, data scientist and machine learning expert."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440005", "pseudonym": "michael_lee", "email": "michael@example.com", "password": "lee1234", "markdown_bio": "Michael Lee, software engineer with a focus on neural networks."}
-{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440006", "pseudonym": "sarah_wilson", "email": "sarah@example.com", "password": "wilson567", "markdown_bio": "Sarah Wilson, AI researcher and tech blogger."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440000", "username": "john_doe1", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe1"}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440001", "username": "john_doe2", "email": "john@example.com", "password": "password", "markdown_bio": "I am john_doe2"}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440002", "username": "jane_smith", "email": "jane@example.com", "password": "password123", "markdown_bio": "I am Jane Smith, a tech enthusiast."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440003", "username": "alex_johnson", "email": "alex@example.com", "password": "securepass", "markdown_bio": "Alex Johnson here, passionate about AI and robotics."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440004", "username": "emily_brown", "email": "emily@example.com", "password": "brownie22", "markdown_bio": "Emily Brown, data scientist and machine learning expert."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440005", "username": "michael_lee", "email": "michael@example.com", "password": "lee1234", "markdown_bio": "Michael Lee, software engineer with a focus on neural networks."}
+{"type": "user", "user_id": "550e8400-e29b-41d4-a716-446655440006", "username": "sarah_wilson", "email": "sarah@example.com", "password": "wilson567", "markdown_bio": "Sarah Wilson, AI researcher and tech blogger."}
 
 
 {"type":"friend", "user_id": "550e8400-e29b-41d4-a716-446655440000", "friend_id": "550e8400-e29b-41d4-a716-446655440001"}
@@ -18,11 +18,83 @@
 {"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440004", "url": "https://example.com/podcast1", "title": "Sample Podcast 1", "description": "This is a sample podcast for testing", "source_type": "podcast"}
 {"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440004", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
 
-{"type": "post", "post_id": "550e8400-e29b-41d4-a716-446655440005", "title": "Sample Article 1", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440010", "url": "https://www.semafor.com/article/08/02/2024/investors-in-adept-ai-will-be-paid-back-after-amazon-hires-startups-top-talent", "title": "Adept's $429m execuhire to Amazon", "description": "Investors in Adept AI will be paid back after Amazon hires startup's top talent", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440010", "user_id": "550e8400-e29b-41d4-a716-446655440002"}
 
-{"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440002"}
-{"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440003"}
-{"type": "post_source", "post_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440004"}
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440011", "url": "https://buttondown.email/ainews/archive/ainews-inflection-25-at-94-of-gpt4-and-pi-at-6m/", "title": "Inflection's $650m execuhire to Microsoft", "description": "Inflection AI's top talent joins Microsoft in a $650 million deal", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440011", "user_id": "550e8400-e29b-41d4-a716-446655440003"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440012", "url": "https://techcrunch.com/2024/08/02/character-ai-ceo-noam-shazeer-returns-to-google/", "title": "Character.ai's $2.5b execuhire to Google", "description": "Character.ai CEO Noam Shazeer returns to Google in a $2.5 billion deal", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440012", "user_id": "550e8400-e29b-41d4-a716-446655440004"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440013", "url": "https://buttondown.email/ainews/archive/ainews-shipping-and-dipping-inflection-stability/", "title": "Stability AI's leadership exodus", "description": "Most of Stability's leadership has left the company", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440013", "user_id": "550e8400-e29b-41d4-a716-446655440005"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440014", "url": "https://buttondown.email/ainews/archive/ainews-rombach-et-al-flux1-prodevschnell-31m-seed/", "title": "Robin Rombach sets up Black Forest Labs", "description": "Former Stability AI leader Robin Rombach establishes Black Forest Labs", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440014", "user_id": "550e8400-e29b-41d4-a716-446655440006"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440015", "url": "https://twitter.com/EMostaque/status/1799044420282826856", "title": "Emad Mostaque launches Schelling", "description": "Former Stability AI CEO Emad Mostaque announces new venture Schelling", "source_type": "tweet"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440015", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440016", "url": "https://www.theinformation.com/articles/a-chatbot-pioneer-mulls-deals-with-rivals-google-and-meta", "title": "Character.ai's growth before Google deal", "description": "Character.ai spokesperson reports 3x year-over-year growth in DAU numbers", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440016", "user_id": "550e8400-e29b-41d4-a716-446655440001"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440017", "url": "https://buttondown.email/ainews/archive/ainews-shazeer-et-al-2024/", "title": "Character.ai's impressive blogposts", "description": "Analysis of Character.ai's recent technical publications", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440017", "user_id": "550e8400-e29b-41d4-a716-446655440002"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440018", "url": "https://research.character.ai/prompt-design-at-character-ai/", "title": "Character.ai introduces Prompt Poet", "description": "Character.ai releases Prompt Poet, showcasing recent innovation", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440018", "user_id": "550e8400-e29b-41d4-a716-446655440003"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440019", "url": "https://www.latent.space/p/mar-jun-2024", "title": "The Winds of AI Winter", "description": "Analysis of shifting trends in the AI industry", "source_type": "article"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440019", "user_id": "550e8400-e29b-41d4-a716-446655440004"}
+
+{"type": "source", "source_id": "550e8400-e29b-41d4-a716-446655440020", "url": "https://x.com/_xjdr/status/1819435049655455987", "title": "Shift to post-training focus in AI", "description": "Industry trend towards emphasizing post-training techniques in AI development", "source_type": "tweet"}
+{"type": "submission", "source_id": "550e8400-e29b-41d4-a716-446655440020", "user_id": "550e8400-e29b-41d4-a716-446655440005"}
+
+
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "title": "Sample Article 1", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440006", "title": "Sample Article 2", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440007", "title": "Sample Article 3", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440008", "title": "Sample Article 4", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440009", "title": "Sample Article 5", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440001", "title": "Sample Article 6", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440021", "title": "Adept's $429m execuhire to Amazon", "user_id": "550e8400-e29b-41d4-a716-446655440002", "primary_source_id": "550e8400-e29b-41d4-a716-446655440010", "description": "Investors in Adept AI will be paid back after Amazon hires startup's top talent"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440021", "source_id": "550e8400-e29b-41d4-a716-446655440010"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440022", "title": "Inflection's $650m execuhire to Microsoft", "user_id": "550e8400-e29b-41d4-a716-446655440003", "primary_source_id": "550e8400-e29b-41d4-a716-446655440011", "description": "Inflection AI's top talent joins Microsoft in a $650 million deal"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440022", "source_id": "550e8400-e29b-41d4-a716-446655440011"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440023", "title": "Character.ai's $2.5b execuhire to Google", "user_id": "550e8400-e29b-41d4-a716-446655440004", "primary_source_id": "550e8400-e29b-41d4-a716-446655440012", "description": "Character.ai CEO Noam Shazeer returns to Google in a $2.5 billion deal"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440023", "source_id": "550e8400-e29b-41d4-a716-446655440012"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440024", "title": "Stability AI's leadership exodus", "user_id": "550e8400-e29b-41d4-a716-446655440005", "primary_source_id": "550e8400-e29b-41d4-a716-446655440013", "description": "Most of Stability's leadership has left the company"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440024", "source_id": "550e8400-e29b-41d4-a716-446655440013"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440025", "title": "Robin Rombach sets up Black Forest Labs", "user_id": "550e8400-e29b-41d4-a716-446655440006", "primary_source_id": "550e8400-e29b-41d4-a716-446655440014", "description": "Former Stability AI leader Robin Rombach establishes Black Forest Labs"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440025", "source_id": "550e8400-e29b-41d4-a716-446655440014"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440026", "title": "Emad Mostaque launches Schelling", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440015", "description": "Former Stability AI CEO Emad Mostaque announces new venture Schelling"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440026", "source_id": "550e8400-e29b-41d4-a716-446655440015"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440027", "title": "Character.ai's growth before Google deal", "user_id": "550e8400-e29b-41d4-a716-446655440001", "primary_source_id": "550e8400-e29b-41d4-a716-446655440016", "description": "Character.ai spokesperson reports 3x year-over-year growth in DAU numbers"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440027", "source_id": "550e8400-e29b-41d4-a716-446655440016"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440028", "title": "Character.ai's impressive blogposts", "user_id": "550e8400-e29b-41d4-a716-446655440002", "primary_source_id": "550e8400-e29b-41d4-a716-446655440017", "description": "Analysis of Character.ai's recent technical publications"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440028", "source_id": "550e8400-e29b-41d4-a716-446655440017"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440029", "title": "Character.ai introduces Prompt Poet", "user_id": "550e8400-e29b-41d4-a716-446655440003", "primary_source_id": "550e8400-e29b-41d4-a716-446655440018", "description": "Character.ai releases Prompt Poet, showcasing recent innovation"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440029", "source_id": "550e8400-e29b-41d4-a716-446655440018"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440030", "title": "The Winds of AI Winter", "user_id": "550e8400-e29b-41d4-a716-446655440004", "primary_source_id": "550e8400-e29b-41d4-a716-446655440019", "description": "Analysis of shifting trends in the AI industry"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440030", "source_id": "550e8400-e29b-41d4-a716-446655440019"}
+
+{"type": "topic", "topic_id": "550e8400-e29b-41d4-a716-446655440031", "title": "Shift to post-training focus in AI", "user_id": "550e8400-e29b-41d4-a716-446655440005", "primary_source_id": "550e8400-e29b-41d4-a716-446655440020", "description": "Industry trend towards emphasizing post-training techniques in AI development"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440031", "source_id": "550e8400-e29b-41d4-a716-446655440020"}
+
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440002"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440003"}
+{"type": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440004"}
 
 {"type": "tag", "tag_id": "550e8400-e29b-41d4-a716-446655440006", "name": "AI", "description": "Artificial Intelligence related content"}
 {"type": "tag", "tag_id": "550e8400-e29b-41d4-a716-446655440007", "name": "Machine Learning", "description": "Topics related to machine learning and data science"}
@@ -39,17 +111,17 @@
 {"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440011", "tag_id": "550e8400-e29b-41d4-a716-446655440007"}
 {"type": "tag_group_association", "group_id": "550e8400-e29b-41d4-a716-446655440011", "tag_id": "550e8400-e29b-41d4-a716-446655440009"}
 
-{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440006"}
-{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440007"}
-{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440008"}
-{"type": "post_tag", "post_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440009"}
+{"type": "topic_tag", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440006"}
+{"type": "topic_tag", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440007"}
+{"type": "topic_tag", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440008"}
+{"type": "topic_tag", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "tag_id": "550e8400-e29b-41d4-a716-446655440009"}
 
-{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "user_id": "550e8400-e29b-41d4-a716-446655440001", "parent_id": null, "content": "Great article! I found the insights on AI very informative.", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
-{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440013", "user_id": "550e8400-e29b-41d4-a716-446655440002", "parent_id": "550e8400-e29b-41d4-a716-446655440012", "content": "I appreciate the comprehensive overview of machine learning techniques presented in this post.", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
-{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440014", "user_id": "550e8400-e29b-41d4-a716-446655440003", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "The section on robotics applications was particularly fascinating. Looking forward to more content like this!", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
-{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440015", "user_id": "550e8400-e29b-41d4-a716-446655440004", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "As a data scientist, I found the discussion on neural networks extremely relevant. Great job!", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
-{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440016", "user_id": "550e8400-e29b-41d4-a716-446655440005", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "This article provides a solid foundation for understanding the intersection of AI and software engineering. Well done!", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
-{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440017", "user_id": "550e8400-e29b-41d4-a716-446655440006", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "As an AI researcher, I appreciate the depth of analysis in this post. It's a valuable resource for both beginners and experts in the field.", "post_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "user_id": "550e8400-e29b-41d4-a716-446655440001", "parent_id": null, "content": "Great article! I found the insights on AI very informative.", "topic_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440013", "user_id": "550e8400-e29b-41d4-a716-446655440002", "parent_id": "550e8400-e29b-41d4-a716-446655440012", "content": "I appreciate the comprehensive overview of machine learning techniques presented in this post.", "topic_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440014", "user_id": "550e8400-e29b-41d4-a716-446655440003", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "The section on robotics applications was particularly fascinating. Looking forward to more content like this!", "topic_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440015", "user_id": "550e8400-e29b-41d4-a716-446655440004", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "As a data scientist, I found the discussion on neural networks extremely relevant. Great job!", "topic_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440016", "user_id": "550e8400-e29b-41d4-a716-446655440005", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "This article provides a solid foundation for understanding the intersection of AI and software engineering. Well done!", "topic_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"type": "comment", "comment_id": "550e8400-e29b-41d4-a716-446655440017", "user_id": "550e8400-e29b-41d4-a716-446655440006", "parent_id": "550e8400-e29b-41d4-a716-446655440013", "content": "As an AI researcher, I appreciate the depth of analysis in this post. It's a valuable resource for both beginners and experts in the field.", "topic_id": "550e8400-e29b-41d4-a716-446655440005"}
 
 {"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440018", "user_id": "550e8400-e29b-41d4-a716-446655440000", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "vote_type": 1}
 {"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440019", "user_id": "550e8400-e29b-41d4-a716-446655440001", "comment_id": "550e8400-e29b-41d4-a716-446655440013", "vote_type": 1}
@@ -59,12 +131,12 @@
 {"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440023", "user_id": "550e8400-e29b-41d4-a716-446655440005", "comment_id": "550e8400-e29b-41d4-a716-446655440017", "vote_type": -1}
 {"type": "comment_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440024", "user_id": "550e8400-e29b-41d4-a716-446655440006", "comment_id": "550e8400-e29b-41d4-a716-446655440012", "vote_type": 1}
 
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440025", "user_id": "550e8400-e29b-41d4-a716-446655440000", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440026", "user_id": "550e8400-e29b-41d4-a716-446655440001", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440027", "user_id": "550e8400-e29b-41d4-a716-446655440002", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": -1}
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440028", "user_id": "550e8400-e29b-41d4-a716-446655440003", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440029", "user_id": "550e8400-e29b-41d4-a716-446655440004", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440030", "user_id": "550e8400-e29b-41d4-a716-446655440005", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": -1}
-{"type": "post_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440031", "user_id": "550e8400-e29b-41d4-a716-446655440006", "post_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440025", "user_id": "550e8400-e29b-41d4-a716-446655440000", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440026", "user_id": "550e8400-e29b-41d4-a716-446655440001", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440027", "user_id": "550e8400-e29b-41d4-a716-446655440002", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": -1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440028", "user_id": "550e8400-e29b-41d4-a716-446655440003", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440029", "user_id": "550e8400-e29b-41d4-a716-446655440004", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440030", "user_id": "550e8400-e29b-41d4-a716-446655440005", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": -1}
+{"type": "topic_vote", "vote_id": "550e8400-e29b-41d4-a716-446655440031", "user_id": "550e8400-e29b-41d4-a716-446655440006", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "vote_type": 1}
 
 

@@ -14,14 +14,14 @@ def setup_database(db):
     # user table
     created = create_table_if_not_exists("user", {
         "user_id": str,
-        "pseudonym": str,
+        "username": str,
         "password": str,
         "markdown_bio": str,
         "email": str,
         "created_at": str
-    }, pk="user_id", not_null={"pseudonym"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
+    }, pk="user_id", not_null={"username"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["user"].create_index(["pseudonym"], unique=True)
+        db["user"].create_index(["username"], unique=True)
     
 
     # tag table
@@ -72,60 +72,60 @@ def setup_database(db):
         db["submission"].add_foreign_key("source_id", "source", "source_id")
         db["submission"].add_foreign_key("user_id", "user", "user_id")
 
-    # post table
-    created = create_table_if_not_exists("post", {
-        "post_id": str,
+    # topic table
+    created = create_table_if_not_exists("topic", {
+        "topic_id": str,
         "title": str,
         "user_id": str,
         "primary_source_id": str,
         "description": str,
         "rank": int,
         "created_at": str
-    }, pk="post_id", not_null={"title"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
+    }, pk="topic_id", not_null={"title"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
 
 
-    # post_source table
-    created = create_table_if_not_exists("post_source", {
-        "post_id": str,
+    # topic_source table
+    created = create_table_if_not_exists("topic_source", {
+        "topic_id": str,
         "source_id": str
-    }, pk=("post_id", "source_id"))
+    }, pk=("topic_id", "source_id"))
     if created:
-        db["post_source"].add_foreign_key("post_id", "post", "post_id")
-        db["post_source"].add_foreign_key("source_id", "source", "source_id")
+        db["topic_source"].add_foreign_key("topic_id", "topic", "topic_id")
+        db["topic_source"].add_foreign_key("source_id", "source", "source_id")
 
-    # post_tag table
-    created = create_table_if_not_exists("post_tag", {
-        "post_id": str,
+    # topic_tag table
+    created = create_table_if_not_exists("topic_tag", {
+        "topic_id": str,
         "tag_id": str
-    }, pk=("post_id", "tag_id"))
+    }, pk=("topic_id", "tag_id"))
     if created:
-        db["post_tag"].add_foreign_key("post_id", "post", "post_id")
-        db["post_tag"].add_foreign_key("tag_id", "tag", "tag_id")
+        db["topic_tag"].add_foreign_key("topic_id", "topic", "topic_id")
+        db["topic_tag"].add_foreign_key("tag_id", "tag", "tag_id")
 
     # comment table
     created = create_table_if_not_exists("comment", {
         "comment_id": str,
         "user_id": str,
         "parent_id": str,
-        "post_id": str,
+        "topic_id": str,
         "content": str,
         "created_at": str
     }, pk="comment_id", not_null={"content"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
         db["comment"].add_foreign_key("user_id", "user", "user_id")
-        db["comment"].add_foreign_key("post_id", "post", "post_id")
+        db["comment"].add_foreign_key("topic_id", "topic", "topic_id")
         db["comment"].add_foreign_key("parent_id", "comment", "comment_id")
 
     # bookmark table
     created = create_table_if_not_exists("bookmark", {
         "bookmark_id": str,
         "user_id": str,
-        "post_id": str,
+        "topic_id": str,
         "created_at": str
     }, pk="bookmark_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
         db["bookmark"].add_foreign_key("user_id", "user", "user_id")
-        db["bookmark"].add_foreign_key("post_id", "post", "post_id")
+        db["bookmark"].add_foreign_key("topic_id", "topic", "topic_id")
 
     # friends table
     created = create_table_if_not_exists("friend", {
@@ -137,18 +137,18 @@ def setup_database(db):
         db["friend"].add_foreign_key("user_id", "user", "user_id")
         db["friend"].add_foreign_key("friend_id", "user", "user_id")
 
-    # post_vote table
-    created = create_table_if_not_exists("post_vote", {
+    # topic_vote table
+    created = create_table_if_not_exists("topic_vote", {
         "vote_id": str,
         "user_id": str,
-        "post_id": str,
+        "topic_id": str,
         "vote_type": int,
         "created_at": str
-    }, pk="vote_id", not_null={"user_id", "post_id", "vote_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
+    }, pk="vote_id", not_null={"user_id", "topic_id", "vote_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["post_vote"].add_foreign_key("user_id", "user", "user_id")
-        db["post_vote"].add_foreign_key("post_id", "post", "post_id")
-        db["post_vote"].create_index(["user_id", "post_id"], unique=True)
+        db["topic_vote"].add_foreign_key("user_id", "user", "user_id")
+        db["topic_vote"].add_foreign_key("topic_id", "topic", "topic_id")
+        db["topic_vote"].create_index(["user_id", "topic_id"], unique=True)
 
     # comment_vote table
     created = create_table_if_not_exists("comment_vote", {
