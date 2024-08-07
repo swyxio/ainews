@@ -1,3 +1,4 @@
+
 -- Schema for table: user
 CREATE TABLE [user] (
     [user_id] TEXT PRIMARY KEY,
