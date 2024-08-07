@@ -11,86 +11,86 @@
 {"table":"friend", "user_id": "550e8400-e29b-41d4-a716-446655440000", "friend_id": "550e8400-e29b-41d4-a716-446655440001"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440002", "url": "https://example.com/article1", "title": "Sample Article 1", "description": "This is a sample article for testing", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440002", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440002", "user_id": "550e8400-e29b-41d4-a716-446655440000", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440003", "url": "https://example.com/video1", "title": "Sample Video 1", "description": "This is a sample video for testing", "source_type": "video"}
-{"table": "submission", "type": "show", "content":"test_content", "source_id": "550e8400-e29b-41d4-a716-446655440003", "user_id": "550e8400-e29b-41d4-a716-446655440001"}
+{"table": "submission", "type": "show", "content":"test_content", "source_id": "550e8400-e29b-41d4-a716-446655440003", "user_id": "550e8400-e29b-41d4-a716-446655440001", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440004", "url": "https://example.com/podcast1", "title": "Sample Podcast 1", "description": "This is a sample podcast for testing", "source_type": "podcast"}
-{"table": "submission", "type": "show", "content":"test_content", "source_id": "550e8400-e29b-41d4-a716-446655440004", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
+{"table": "submission", "type": "show", "content":"test_content", "source_id": "550e8400-e29b-41d4-a716-446655440004", "user_id": "550e8400-e29b-41d4-a716-446655440000", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440010", "url": "https://www.semafor.com/article/08/02/2024/investors-in-adept-ai-will-be-paid-back-after-amazon-hires-startups-top-talent", "title": "Adept's $429m execuhire to Amazon", "description": "Investors in Adept AI will be paid back after Amazon hires startup's top talent", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440010", "user_id": "550e8400-e29b-41d4-a716-446655440002"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440010", "user_id": "550e8400-e29b-41d4-a716-446655440002", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440011", "url": "https://buttondown.email/ainews/archive/ainews-inflection-25-at-94-of-gpt4-and-pi-at-6m/", "title": "Inflection's $650m execuhire to Microsoft", "description": "Inflection AI's top talent joins Microsoft in a $650 million deal", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440011", "user_id": "550e8400-e29b-41d4-a716-446655440003"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440011", "user_id": "550e8400-e29b-41d4-a716-446655440003", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440012", "url": "https://techcrunch.com/2024/08/02/character-ai-ceo-noam-shazeer-returns-to-google/", "title": "Character.ai's $2.5b execuhire to Google", "description": "Character.ai CEO Noam Shazeer returns to Google in a $2.5 billion deal", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440012", "user_id": "550e8400-e29b-41d4-a716-446655440004"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440012", "user_id": "550e8400-e29b-41d4-a716-446655440004", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440013", "url": "https://buttondown.email/ainews/archive/ainews-shipping-and-dipping-inflection-stability/", "title": "Stability AI's leadership exodus", "description": "Most of Stability's leadership has left the company", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440013", "user_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440013", "user_id": "550e8400-e29b-41d4-a716-446655440005", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440014", "url": "https://buttondown.email/ainews/archive/ainews-rombach-et-al-flux1-prodevschnell-31m-seed/", "title": "Robin Rombach sets up Black Forest Labs", "description": "Former Stability AI leader Robin Rombach establishes Black Forest Labs", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440014", "user_id": "550e8400-e29b-41d4-a716-446655440006"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440014", "user_id": "550e8400-e29b-41d4-a716-446655440006", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440015", "url": "https://twitter.com/EMostaque/status/1799044420282826856", "title": "Emad Mostaque launches Schelling", "description": "Former Stability AI CEO Emad Mostaque announces new venture Schelling", "source_type": "tweet"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440015", "user_id": "550e8400-e29b-41d4-a716-446655440000"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440015", "user_id": "550e8400-e29b-41d4-a716-446655440000", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440016", "url": "https://www.theinformation.com/articles/a-chatbot-pioneer-mulls-deals-with-rivals-google-and-meta", "title": "Character.ai's growth before Google deal", "description": "Character.ai spokesperson reports 3x year-over-year growth in DAU numbers", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440016", "user_id": "550e8400-e29b-41d4-a716-446655440001"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440016", "user_id": "550e8400-e29b-41d4-a716-446655440001", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440017", "url": "https://buttondown.email/ainews/archive/ainews-shazeer-et-al-2024/", "title": "Character.ai's impressive blogposts", "description": "Analysis of Character.ai's recent technical publications", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440017", "user_id": "550e8400-e29b-41d4-a716-446655440002"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440017", "user_id": "550e8400-e29b-41d4-a716-446655440002", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440018", "url": "https://research.character.ai/prompt-design-at-character-ai/", "title": "Character.ai introduces Prompt Poet", "description": "Character.ai releases Prompt Poet, showcasing recent innovation", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440018", "user_id": "550e8400-e29b-41d4-a716-446655440003"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440018", "user_id": "550e8400-e29b-41d4-a716-446655440003", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440019", "url": "https://www.latent.space/p/mar-jun-2024", "title": "The Winds of AI Winter", "description": "Analysis of shifting trends in the AI industry", "source_type": "article"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440019", "user_id": "550e8400-e29b-41d4-a716-446655440004"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440019", "user_id": "550e8400-e29b-41d4-a716-446655440004", "state": "public"}
 
 {"table": "source", "source_id": "550e8400-e29b-41d4-a716-446655440020", "url": "https://x.com/_xjdr/status/1819435049655455987", "title": "Shift to post-training focus in AI", "description": "Industry trend towards emphasizing post-training techniques in AI development", "source_type": "tweet"}
-{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440020", "user_id": "550e8400-e29b-41d4-a716-446655440005"}
+{"table": "submission", "type": "show", "source_id": "550e8400-e29b-41d4-a716-446655440020", "user_id": "550e8400-e29b-41d4-a716-446655440005", "state": "public"}
 
 
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "title": "Sample Article 1", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440006", "title": "Sample Article 2", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
-{"table": "topic", "type": "show", "content":"test_content", "topic_id": "550e8400-e29b-41d4-a716-446655440007", "title": "Sample Article 3", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440008", "title": "Sample Article 4", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440009", "title": "Sample Article 5", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
-{"table": "topic", "type": "show", "content":"test_content", "topic_id": "550e8400-e29b-41d4-a716-446655440001", "title": "Sample Article 6", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440021", "title": "Adept's $429m execuhire to Amazon", "user_id": "550e8400-e29b-41d4-a716-446655440002", "primary_source_id": "550e8400-e29b-41d4-a716-446655440010", "description": "Investors in Adept AI will be paid back after Amazon hires startup's top talent"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "title": "Sample Article 1", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"table": "topic", "type": "ask", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440006", "title": "Sample Article 2", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440002", "description": "This is a sample article for testing"}
+{"table": "topic", "type": "tell", "state": "top", "content":"test_content", "topic_id": "550e8400-e29b-41d4-a716-446655440007", "title": "Sample Article 3", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
+{"table": "topic", "type": "ask", "state": "archive", "topic_id": "550e8400-e29b-41d4-a716-446655440008", "title": "Sample Article 4", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440003", "description": "This is a sample article for testing"}
+{"table": "topic", "type": "show", "state": "archive", "topic_id": "550e8400-e29b-41d4-a716-446655440009", "title": "Sample Article 5", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
+{"table": "topic", "type": "tell", "state": "archive", "content":"test_content", "topic_id": "550e8400-e29b-41d4-a716-446655440001", "title": "Sample Article 6", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440004", "description": "This is a sample article for testing"}
+{"table": "topic", "type": "show", "state": "hidden", "topic_id": "550e8400-e29b-41d4-a716-446655440021", "title": "Adept's $429m execuhire to Amazon", "user_id": "550e8400-e29b-41d4-a716-446655440002", "primary_source_id": "550e8400-e29b-41d4-a716-446655440010", "description": "Investors in Adept AI will be paid back after Amazon hires startup's top talent"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440021", "source_id": "550e8400-e29b-41d4-a716-446655440010"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440022", "title": "Inflection's $650m execuhire to Microsoft", "user_id": "550e8400-e29b-41d4-a716-446655440003", "primary_source_id": "550e8400-e29b-41d4-a716-446655440011", "description": "Inflection AI's top talent joins Microsoft in a $650 million deal"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440022", "title": "Inflection's $650m execuhire to Microsoft", "user_id": "550e8400-e29b-41d4-a716-446655440003", "primary_source_id": "550e8400-e29b-41d4-a716-446655440011", "description": "Inflection AI's top talent joins Microsoft in a $650 million deal"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440022", "source_id": "550e8400-e29b-41d4-a716-446655440011"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440023", "title": "Character.ai's $2.5b execuhire to Google", "user_id": "550e8400-e29b-41d4-a716-446655440004", "primary_source_id": "550e8400-e29b-41d4-a716-446655440012", "description": "Character.ai CEO Noam Shazeer returns to Google in a $2.5 billion deal"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440023", "title": "Character.ai's $2.5b execuhire to Google", "user_id": "550e8400-e29b-41d4-a716-446655440004", "primary_source_id": "550e8400-e29b-41d4-a716-446655440012", "description": "Character.ai CEO Noam Shazeer returns to Google in a $2.5 billion deal"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440023", "source_id": "550e8400-e29b-41d4-a716-446655440012"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440024", "title": "Stability AI's leadership exodus", "user_id": "550e8400-e29b-41d4-a716-446655440005", "primary_source_id": "550e8400-e29b-41d4-a716-446655440013", "description": "Most of Stability's leadership has left the company"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440024", "title": "Stability AI's leadership exodus", "user_id": "550e8400-e29b-41d4-a716-446655440005", "primary_source_id": "550e8400-e29b-41d4-a716-446655440013", "description": "Most of Stability's leadership has left the company"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440024", "source_id": "550e8400-e29b-41d4-a716-446655440013"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440025", "title": "Robin Rombach sets up Black Forest Labs", "user_id": "550e8400-e29b-41d4-a716-446655440006", "primary_source_id": "550e8400-e29b-41d4-a716-446655440014", "description": "Former Stability AI leader Robin Rombach establishes Black Forest Labs"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440025", "title": "Robin Rombach sets up Black Forest Labs", "user_id": "550e8400-e29b-41d4-a716-446655440006", "primary_source_id": "550e8400-e29b-41d4-a716-446655440014", "description": "Former Stability AI leader Robin Rombach establishes Black Forest Labs"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440025", "source_id": "550e8400-e29b-41d4-a716-446655440014"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440026", "title": "Emad Mostaque launches Schelling", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440015", "description": "Former Stability AI CEO Emad Mostaque announces new venture Schelling"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440026", "title": "Emad Mostaque launches Schelling", "user_id": "550e8400-e29b-41d4-a716-446655440000", "primary_source_id": "550e8400-e29b-41d4-a716-446655440015", "description": "Former Stability AI CEO Emad Mostaque announces new venture Schelling"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440026", "source_id": "550e8400-e29b-41d4-a716-446655440015"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440027", "title": "Character.ai's growth before Google deal", "user_id": "550e8400-e29b-41d4-a716-446655440001", "primary_source_id": "550e8400-e29b-41d4-a716-446655440016", "description": "Character.ai spokesperson reports 3x year-over-year growth in DAU numbers"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440027", "title": "Character.ai's growth before Google deal", "user_id": "550e8400-e29b-41d4-a716-446655440001", "primary_source_id": "550e8400-e29b-41d4-a716-446655440016", "description": "Character.ai spokesperson reports 3x year-over-year growth in DAU numbers"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440027", "source_id": "550e8400-e29b-41d4-a716-446655440016"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440028", "title": "Character.ai's impressive blogposts", "user_id": "550e8400-e29b-41d4-a716-446655440002", "primary_source_id": "550e8400-e29b-41d4-a716-446655440017", "description": "Analysis of Character.ai's recent technical publications"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440028", "title": "Character.ai's impressive blogposts", "user_id": "550e8400-e29b-41d4-a716-446655440002", "primary_source_id": "550e8400-e29b-41d4-a716-446655440017", "description": "Analysis of Character.ai's recent technical publications"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440028", "source_id": "550e8400-e29b-41d4-a716-446655440017"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440029", "title": "Character.ai introduces Prompt Poet", "user_id": "550e8400-e29b-41d4-a716-446655440003", "primary_source_id": "550e8400-e29b-41d4-a716-446655440018", "description": "Character.ai releases Prompt Poet, showcasing recent innovation"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440029", "title": "Character.ai introduces Prompt Poet", "user_id": "550e8400-e29b-41d4-a716-446655440003", "primary_source_id": "550e8400-e29b-41d4-a716-446655440018", "description": "Character.ai releases Prompt Poet, showcasing recent innovation"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440029", "source_id": "550e8400-e29b-41d4-a716-446655440018"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440030", "title": "The Winds of AI Winter", "user_id": "550e8400-e29b-41d4-a716-446655440004", "primary_source_id": "550e8400-e29b-41d4-a716-446655440019", "description": "Analysis of shifting trends in the AI industry"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440030", "title": "The Winds of AI Winter", "user_id": "550e8400-e29b-41d4-a716-446655440004", "primary_source_id": "550e8400-e29b-41d4-a716-446655440019", "description": "Analysis of shifting trends in the AI industry"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440030", "source_id": "550e8400-e29b-41d4-a716-446655440019"}
 
-{"table": "topic", "type": "show", "topic_id": "550e8400-e29b-41d4-a716-446655440031", "title": "Shift to post-training focus in AI", "user_id": "550e8400-e29b-41d4-a716-446655440005", "primary_source_id": "550e8400-e29b-41d4-a716-446655440020", "description": "Industry trend towards emphasizing post-training techniques in AI development"}
+{"table": "topic", "type": "show", "state": "top", "topic_id": "550e8400-e29b-41d4-a716-446655440031", "title": "Shift to post-training focus in AI", "user_id": "550e8400-e29b-41d4-a716-446655440005", "primary_source_id": "550e8400-e29b-41d4-a716-446655440020", "description": "Industry trend towards emphasizing post-training techniques in AI development"}
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440031", "source_id": "550e8400-e29b-41d4-a716-446655440020"}
 
 {"table": "topic_source", "topic_id": "550e8400-e29b-41d4-a716-446655440005", "source_id": "550e8400-e29b-41d4-a716-446655440002"}
