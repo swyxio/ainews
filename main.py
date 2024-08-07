@@ -285,9 +285,7 @@ def renderTopic(self):
           if parsed_url.netloc.startswith('www.'):
               parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
           parsed_domain = parsed_url.netloc
-          show = Div(Span(title), 
-                    Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")
-                ) if parsed_url.netloc == '' else Div(
+          show = Div(
                     # Div(
                     #     Img(src=meta_object.get('image', ''), 
                     #         alt="Article image", 
@@ -295,7 +293,7 @@ def renderTopic(self):
                     #     ) if scraped_data and meta_object.get('image') else None,
                     #     cls="flex-shrink-0"
                     # ),
-                    Span(parsed_domain, cls="italic text-thin"),
+                    Div(Span(type, cls="bg-blue-100 p-1 border border-blue-800 rounded"), Span(parsed_domain, cls="italic text-thin"), cls="mb-2"),
                     Span(A2(title, href=f'/p/{self["topic_id"]}', cls="font-bold text-2xl")), 
                     Span(f"({created_at} by {owner})", cls="text-xs text-white group-hover:text-gray-600"), 
                     cls="flex flex-col"
@@ -393,6 +391,7 @@ def home(auth):
     username
     from {topic} join {source} on {topic}.primary_source_id = {source}.source_id
     join {user} on {topic}.user_id={user}.user_id
+    where {topic}.state = 'top' limit 11
     """
     db.create_view("TopicsView", topicsview, replace=True)
 
@@ -404,7 +403,7 @@ def home(auth):
     # print('tps')
     # print('tps')
 
-    topicsViewLimit = db.q(f"select * from {db.v.TopicsView} limit 14")
+    topicsViewLimit = db.q(f"select * from {db.v.TopicsView}")
     # print('topicsViewLimit')
     # print('topicsViewLimit')
     # import json
@@ -412,9 +411,13 @@ def home(auth):
     # print('topicsViewLimit')
     # print('topicsViewLimit')
 
-    frm = Ul(*[renderTopic(x) for x in topicsViewLimit[6:]],
-             cls="flex flex-col justify-center items-center gap-4"
+    frm = Ul(*[renderTopic(x) for x in topicsViewLimit[0:]],
+             cls= "grid grid-cols-2 gap-4 max-w-[640px] mx-auto " +
+                 " ".join(map(lambda x: f"[&>*:first-child]:{x}", "col-span-2 flex justify-center text-4xl borderb-b-2".split()
+                 ))
+
              )
+            #  cls="flex flex-col justify-center items-start gap-4 max-w-[640px] m-auto"
               #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
     card = Card(frm, header=Div(
@@ -424,7 +427,7 @@ def home(auth):
         Span('and', cls="mr-2"),
         Span('Tell', cls="text-blue-900 mr-1"),
         "everything in AI",
-        cls="font-medium text-2xl flex"
+        cls="font-medium text-2xl flex mb-4"
     ), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
@@ -433,8 +436,8 @@ def home(auth):
 
     return page_header("AI News Home",auth, card)
 
-@app.get("/submissions")
-def submissions(auth):
+@app.get("/all")
+def allSubmissions(auth):
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
     # new_inp = Input(id="new-title", name="title", placeholder="New Post")
