@@ -81,14 +81,30 @@ app, rt = fast_app(
                # PicoCSS is a particularly simple CSS framework, with some basic integration built in to FastHTML.
                # `picolink` is pre-defined with the header for the PicoCSS stylesheet.
                # You can use any CSS framework you want, or none at all.
-               hdrs=(picolink,
+               pico=False,
+               hdrs=(
+                  #  picolink,
+                     Link(rel='preconnect', href='https://rsms.me/'),
                      Script(src="https://cdn.tailwindcss.com"), # SWYX TODO: proper deployment of tailwind
+                     Link(rel='stylesheet', href='https://rsms.me/inter/inter.css', type='text/css'),
                      # `Style` is an `FT` object, which are 3-element lists consisting of:
                      # (tag_name, children_list, attrs_dict).
                      # FastHTML composes them from trees and auto-converts them to HTML when needed.
                      # You can also use plain HTML strings in handlers and headers,
                      # which will be auto-escaped, unless you use `NotStr(...string...)`.
-                     Style(':root { --pico-font-size: 60%; }'),
+                     Style("""
+                           :root { 
+                            font-size: 8pt;
+                            font-family: Inter, Verdana, Geneva, sans-serif; 
+                            font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+                           }
+                            @supports (font-variation-settings: normal) {
+                              :root { font-family: InterVariable, sans-serif; }
+                            }
+                           .container {
+                            margin: 0 auto;
+                           } 
+                           """),
                      # Have a look at fasthtml/js.py to see how these Javascript libraries are added to FastHTML.
                      # They are only 5-10 lines of code each, and you can add your own too.
                     #  SortableJS('.sortable'), # commented out bc not needed
@@ -311,7 +327,7 @@ def home(auth):
     # print('tps')
     # print('tps')
 
-    topicsViewLimit = db.q(f"select * from {db.v.TopicsView} limit 20")
+    topicsViewLimit = db.q(f"select * from {db.v.TopicsView} limit 14")
     # print('topicsViewLimit')
     # print('topicsViewLimit')
     # import json
@@ -320,16 +336,23 @@ def home(auth):
     # print('topicsViewLimit')
 
 
-    frm = Ul(*[renderTopic(x) for x in topicsViewLimit])
+    frm = Ul(*[renderTopic(x) for x in topicsViewLimit[6:]])
               #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(frm, header=Div('read em and weep'), footer=Div(id='current-post'))
+    card = Card(frm, header=Div(
+        Button('Ask', cls="text-blue-600 mr-2"),
+        Button('Show', cls="text-blue-600 mr-2"),
+        Span('and', cls="mr-2"),
+        Button('Tell', cls="text-blue-600 mr-2"),
+        "everything in AI",
+        cls="font-medium text-2xl flex"
+    ), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
 
-    return page_header("AI News Home", auth, card)
+    return page_header("Home", auth, card)
 
 # swyx: submit page
 @app.get("/submit")

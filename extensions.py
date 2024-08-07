@@ -7,9 +7,9 @@ def A2(*c, **kwargs)->FT:
     simple wrapper to add some default tailwind classes for our links
     '''
     if 'cls' not in kwargs:
-        kwargs['cls'] = " hover:text-blue-200 text-blue-400"
+        kwargs['cls'] = " hover:text-blue-400 text-blue-600"
     elif 'cls' in kwargs and not any(cls.startswith('text-') for cls in kwargs['cls'].split()):
-        kwargs['cls'] += " hover:text-blue-200 text-blue-400"
+        kwargs['cls'] += " hover:text-blue-400 text-blue-600"
     return A(*c, **kwargs)
 
 
@@ -48,16 +48,27 @@ def display_url(url, title, timestr, owner):
     return show
     
 def page_header(_title, auth, *args): 
-  title = f"{_title} - {auth['username'] if auth else ''}"
-  top = Grid(H1(title), 
-              Div(
-                  A2('home', href='/'), 
-                  '|',
-                  A2('submit', href='/submit'), 
-                  '|',
-                  A2(auth['username'], href='/profile') if auth else A2('login', href='/login') , 
-                  style='text-align: right'))
-  return Title(title), Container(top, *args)
+  title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
+
+  AHeaderClass = "border-l-2 font-light px-8 inline-flex border-black items-center hover:text-blue-500 text-blue-700"
+  top = Div(
+          Div(
+            Div(
+                Span("AINews", cls="text-[10rem] font-black block -mb-24"),
+                # H1(title),
+                cls=""
+            ),
+            cls="flex justify-between w-[640px] m-auto"
+          ),
+          Div(
+            A('home', href='/', cls=AHeaderClass), 
+            A('submit', href='/submit', cls=AHeaderClass), 
+            A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login'),
+            cls="flex justify-between h-16 pr-8"
+          ),
+          cls="flex justify-between bg-[#fff200] mb-16"
+        )
+  return Title("[AINews] " + title), top, Container(*args)
 
 
 __all__ = ['A2', 'display_time', 'display_url', 'page_header']
