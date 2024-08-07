@@ -17,7 +17,7 @@ def seed_objects(db):
                     print("Encountered an empty line, skipping...")
                     continue
                 obj = json.loads(line)
-                obj_type = obj.pop('type')  # Remove and ge
+                obj_type = obj.pop('table')  # Remove and ge
                 print(f"Seeding {obj_type} with values of {obj}")
                 db.table(obj_type).insert(obj)
 

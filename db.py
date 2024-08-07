@@ -65,9 +65,12 @@ def setup_database(db):
 
     # submission table
     created = create_table_if_not_exists("submission", {
+        "type": str,
+        "title": str,
+        "content": str,
         "source_id": str,
         "user_id": str
-    }, pk="source_id")
+    }, pk="source_id", not_null={"type"})
     if created:
         db["submission"].add_foreign_key("source_id", "source", "source_id")
         db["submission"].add_foreign_key("user_id", "user", "user_id")
@@ -76,12 +79,14 @@ def setup_database(db):
     created = create_table_if_not_exists("topic", {
         "topic_id": str,
         "title": str,
+        "content": str,
+        "type": str,
         "user_id": str,
         "primary_source_id": str,
         "description": str,
         "rank": int,
         "created_at": str
-    }, pk="topic_id", not_null={"title"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
+    }, pk="topic_id", not_null={"title", "type"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
 
 
     # topic_source table
