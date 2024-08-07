@@ -1,6 +1,6 @@
 
 from fasthtml.common import *
-from extensions import A2, display_time, display_url, page_header
+from extensions import A2, display_time, page_header, scrape_site
 from datetime import datetime
 from uuid import uuid4
 from hmac import compare_digest
@@ -81,14 +81,31 @@ app, rt = fast_app(
                # PicoCSS is a particularly simple CSS framework, with some basic integration built in to FastHTML.
                # `picolink` is pre-defined with the header for the PicoCSS stylesheet.
                # You can use any CSS framework you want, or none at all.
-               hdrs=(picolink,
+               pico=False,
+               hdrs=(
+                  #  picolink,
+                     Link(rel='preconnect', href='https://rsms.me/'),
+                     Script(src="https://unpkg.com/x-frame-bypass", type="module"),
                      Script(src="https://cdn.tailwindcss.com"), # SWYX TODO: proper deployment of tailwind
+                     Link(rel='stylesheet', href='https://rsms.me/inter/inter.css', type='text/css'),
                      # `Style` is an `FT` object, which are 3-element lists consisting of:
                      # (tag_name, children_list, attrs_dict).
                      # FastHTML composes them from trees and auto-converts them to HTML when needed.
                      # You can also use plain HTML strings in handlers and headers,
                      # which will be auto-escaped, unless you use `NotStr(...string...)`.
-                     Style(':root { --pico-font-size: 60%; }'),
+                     Style("""
+                           :root { 
+                            font-size: 8pt;
+                            font-family: Inter, Verdana, Geneva, sans-serif; 
+                            font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
+                           }
+                            @supports (font-variation-settings: normal) {
+                              :root { font-family: InterVariable, sans-serif; }
+                            }
+                           .container {
+                            margin: 0 auto;
+                           } 
+                           """),
                      # Have a look at fasthtml/js.py to see how these Javascript libraries are added to FastHTML.
                      # They are only 5-10 lines of code each, and you can add your own too.
                     #  SortableJS('.sortable'), # commented out bc not needed
@@ -257,12 +274,49 @@ async def get(fname:str, ext:str): return FileResponse(f'/static/{fname}.{ext}')
 
 # deopted from __ft__ in https://github.com/swyxio/ainews/pull/3/files
 def renderTopic(self):
-    show = display_url(self["source_url"], self["source_title"], self["created_at"], self["username"])
     # isRead = '✅ ' if self["read"] else '🔲 '
-    rank = Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}'))
 
+    # (scraped_data, text_content, meta_object) = scrape_site(self["source_url"])
+# 
+    def display_url(url, title, timestr, owner):
+        created_at = display_time(timestr)
+        from urllib.parse import urlparse
+        try:
+            parsed_url = urlparse(url)
+            if parsed_url.netloc.startswith('www.'):
+                parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
+            parsed_domain = parsed_url.netloc
+            show = Div(Span(title), 
+                      Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")
+                  ) if parsed_url.netloc == '' else Div(
+                      # Div(
+                      #     Img(src=meta_object.get('image', ''), 
+                      #         alt="Article image", 
+                      #         cls="w-16 h-16 object-cover mr-2 float-left"
+                      #     ) if scraped_data and meta_object.get('image') else None,
+                      #     cls="flex-shrink-0"
+                      # ),
+                      Span(parsed_domain, cls="italic text-thin"),
+                      Span(A2(title, href=f'/p/{self["topic_id"]}', cls="font-bold text-2xl")), 
+                      Span(f"({created_at} by {owner})", cls="text-xs text-white group-hover:text-gray-600"), 
+                      cls="flex flex-col"
+                  )
+        except ValueError:
+            show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
+        return show
+  
 
-    cts = Div(Div(rank, cls="w-12 text-right"), Div(show, Hidden(id="id", value=self['topic_id'])), cls="flex gap-4")
+    cts = Div(
+        # Div(
+        #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')), 
+        #     cls="w-12 text-right"
+        # ), 
+        Div(
+            display_url(self["source_url"], self["source_title"], self["created_at"], self["username"]), 
+            Hidden(id="id", value=self['topic_id']),
+        ), 
+        cls="flex gap-4 group"
+        )
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
     return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
 
@@ -311,7 +365,7 @@ def home(auth):
     # print('tps')
     # print('tps')
 
-    topicsViewLimit = db.q(f"select * from {db.v.TopicsView} limit 20")
+    topicsViewLimit = db.q(f"select * from {db.v.TopicsView} limit 14")
     # print('topicsViewLimit')
     # print('topicsViewLimit')
     # import json
@@ -319,17 +373,26 @@ def home(auth):
     # print('topicsViewLimit')
     # print('topicsViewLimit')
 
-
-    frm = Ul(*[renderTopic(x) for x in topicsViewLimit])
+    frm = Ul(*[renderTopic(x) for x in topicsViewLimit[6:]],
+             cls="flex flex-col justify-center items-center gap-4"
+             )
               #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(frm, header=Div('read em and weep'), footer=Div(id='current-post'))
+    card = Card(frm, header=Div(
+        # SWYX todo: convert to buttons as filters in future?
+        Span('Ask', cls="text-blue-900 mr-1"),
+        Span('Show', cls="text-blue-900 mr-1"),
+        Span('and', cls="mr-2"),
+        Span('Tell', cls="text-blue-900 mr-1"),
+        "everything in AI",
+        cls="font-medium text-2xl flex"
+    ), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
 
-    return page_header("AI News Home", auth, card)
+    return page_header("Home", auth, card)
 
 # swyx: submit page
 @app.get("/submit")
@@ -436,6 +499,7 @@ def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-post')
 #     # inner HTML is simply deleted. That's why the deleted todo is removed from the list.
 #     return clr_details()
 
+
 @app.get("/p/{id}")
 async def seeTopic(auth, id:str):
     
@@ -479,6 +543,20 @@ async def seeTopic(auth, id:str):
         "created_at": topic_data["created_at"]
     }
 
+    (scraped_data, text_content, meta_object) = scrape_site(topic_details['source_url'])
+    scraped_content = None
+    if scraped_data:
+      # Create HTML elements to display the scraped info
+      scraped_content = Div(
+          P(f"Title: {meta_object.get('title', 'N/A')}", cls="text-sm"),
+          P(f"Description: {meta_object.get('description', 'N/A')}", cls="text-sm"),
+          Img(src=meta_object.get('image', ''), alt="Article image", cls="mt-2 max-w-full h-auto") if meta_object.get('image') else None,
+          H3("Article Peek:", cls="text-lg font-semibold mt-4 mb-2"),
+          P(text_content[:500] + "..." if len(text_content) > 500 else text_content, cls="text-sm mb-3"),
+          H4("Meta Information:", cls="text-md font-semibold mt-3 mb-2"),
+          cls="mt-4 p-3 bg-gray-100 rounded-md"
+      )
+
     # Create the HTML content for displaying the topic details
     topic_content = Div(
         H2(topic_details["title"], cls="text-xl font-bold mb-2"),
@@ -487,6 +565,11 @@ async def seeTopic(auth, id:str):
             P(f"Created: {topic_details['created_at']}", cls="text-xs"),
             cls="flex justify-between items-center mb-2"
         ),
+        # if source_url is present, display in an iframe component
+        Div(
+            scraped_content, # Iframe(src=topic_details["source_url"], width="100%", height="400", cls="mb-4", **{"is": "x-frame-bypass", "referrerpolicy": "no-referrer", "sandbox": "allow-scripts allow-same-origin"}),
+            cls="mb-4"
+        ) if topic_details["source_url"] else None,
         P(topic_details['description'], cls="text-sm mb-3"),
         *([
             H3("Additional Sources:", cls="text-lg font-semibold mb-2"),
