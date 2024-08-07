@@ -17,13 +17,23 @@ def display_time(timestr):
     now = datetime.now()
     if timestr:
         try:
-            created_date = datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S")
+            # Try parsing with both formats
+            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"): # when submitted from ui it is 2024-08-07T14:56:48.326337, when seeded it is 2024-08-07 14:56:48.326337
+                try:
+                    created_date = datetime.strptime(timestr, fmt)
+                    break
+                except ValueError:
+                    continue
+            else:
+                # If no format matches, use the original string
+                raise ValueError
+
             if created_date.date() >= now.date():
                 created_at_str = created_date.strftime("%-I:%M %p")
             else:
                 created_at_str = created_date.strftime("%Y-%m-%d")
         except ValueError:
-            # Fallback in case the format is different
+            # Fallback in case neither format matches
             created_at_str = timestr
     else:
         created_at_str = 'N/A'
@@ -68,7 +78,7 @@ def page_header(_title, auth, *args):
             A('home', href='/', cls=AHeaderClass), 
             A('submit', href='/submit', cls=AHeaderClass), 
             A('all', href='/all', cls=AHeaderClass), 
-            A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login'),
+            A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login', cls=AHeaderClass),
             cls="flex justify-between h-16 pr-8"
           ),
           cls="flex justify-between bg-[#fff200] mb-16"
