@@ -68,9 +68,10 @@ def setup_database(db):
         "type": str,
         "title": str,
         "content": str,
+        "state": str,
         "source_id": str,
         "user_id": str
-    }, pk="source_id", not_null={"type"})
+    }, pk="source_id")
     if created:
         db["submission"].add_foreign_key("source_id", "source", "source_id")
         db["submission"].add_foreign_key("user_id", "user", "user_id")
@@ -81,6 +82,7 @@ def setup_database(db):
         "title": str,
         "content": str,
         "type": str,
+        "state": str,
         "user_id": str,
         "primary_source_id": str,
         "description": str,

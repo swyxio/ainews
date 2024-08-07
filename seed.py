@@ -16,9 +16,14 @@ def seed_objects(db):
                 if not line.strip():
                     print("Encountered an empty line, skipping...")
                     continue
-                obj = json.loads(line)
-                obj_type = obj.pop('table')  # Remove and ge
-                print(f"Seeding {obj_type} with values of {obj}")
-                db.table(obj_type).insert(obj)
+                try:
+                    obj = json.loads(line)
+                    obj_type = obj.pop('table')  # Remove and get the table name
+                    print(f"Seeding {obj_type} with values of {obj}")
+                    db.table(obj_type).insert(obj)
+                except Exception as e:
+                    print(f"Error processing line: {line}")
+                    raise e
+            
 
  

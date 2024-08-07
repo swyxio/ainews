@@ -29,6 +29,27 @@ def display_time(timestr):
         created_at_str = 'N/A'
     return created_at_str
 
+def display_submission_url(submission_state, url, type, title, timestr, owner, state):
+    created_at = display_time(timestr)
+    from urllib.parse import urlparse
+    try:
+        parsed_url = urlparse(url)
+        prefix_type = f"{type.capitalize()}: " if type != "" else ""
+        if parsed_url.netloc.startswith('www.'):
+            parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
+        show = Div(
+                  Span(A2(f"Submission State: {submission_state} {prefix_type}{title}", href=url, target="_blank")), 
+                  Span(f"{created_at} by {owner} {state})", cls="text-xs text-gray-400"), 
+                  cls="flex flex-col"
+              ) if parsed_url.netloc == '' else Div(
+                  Span(A2(f"Submission State: {submission_state} {prefix_type}{title}", href=url, target="_blank")), 
+                  Span(f"({parsed_url.netloc}, {created_at} by {owner} {state})", cls="text-xs text-gray-400"), 
+                  cls="flex flex-col"
+              )
+    except ValueError:
+        show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
+    return show
+    
     
 def page_header(_title, auth, *args): 
   title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
@@ -46,6 +67,7 @@ def page_header(_title, auth, *args):
           Div(
             A('home', href='/', cls=AHeaderClass), 
             A('submit', href='/submit', cls=AHeaderClass), 
+            A('all', href='/all', cls=AHeaderClass), 
             A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login'),
             cls="flex justify-between h-16 pr-8"
           ),
@@ -79,5 +101,5 @@ def scrape_site(url: str):
   return scraped_data
 
 
-__all__ = ['A2', 'display_time', 'page_header', 'scrape_site']
+__all__ = ['A2', 'display_time', 'page_header', 'display_submission_url', 'scrape_site']
 

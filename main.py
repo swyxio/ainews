@@ -274,48 +274,87 @@ async def get(fname:str, ext:str): return FileResponse(f'/static/{fname}.{ext}')
 
 # deopted from __ft__ in https://github.com/swyxio/ainews/pull/3/files
 def renderTopic(self):
-    # isRead = '✅ ' if self["read"] else '🔲 '
+    # rank = Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}'))
 
-    # (scraped_data, text_content, meta_object) = scrape_site(self["source_url"])
-# 
-    def display_url(url, title, timestr, owner):
-        created_at = display_time(timestr)
-        from urllib.parse import urlparse
-        try:
-            parsed_url = urlparse(url)
-            if parsed_url.netloc.startswith('www.'):
-                parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
-            parsed_domain = parsed_url.netloc
-            show = Div(Span(title), 
-                      Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")
-                  ) if parsed_url.netloc == '' else Div(
-                      # Div(
-                      #     Img(src=meta_object.get('image', ''), 
-                      #         alt="Article image", 
-                      #         cls="w-16 h-16 object-cover mr-2 float-left"
-                      #     ) if scraped_data and meta_object.get('image') else None,
-                      #     cls="flex-shrink-0"
-                      # ),
-                      Span(parsed_domain, cls="italic text-thin"),
-                      Span(A2(title, href=f'/p/{self["topic_id"]}', cls="font-bold text-2xl")), 
-                      Span(f"({created_at} by {owner})", cls="text-xs text-white group-hover:text-gray-600"), 
-                      cls="flex flex-col"
-                  )
-        except ValueError:
-            show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
-        return show
-  
+
+    def display_topic_url(url, type, title, timestr, owner, state):
+      created_at = display_time(timestr)
+      from urllib.parse import urlparse
+      try:
+          parsed_url = urlparse(url)
+          if parsed_url.netloc.startswith('www.'):
+              parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
+          parsed_domain = parsed_url.netloc
+          show = Div(Span(title), 
+                    Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")
+                ) if parsed_url.netloc == '' else Div(
+                    # Div(
+                    #     Img(src=meta_object.get('image', ''), 
+                    #         alt="Article image", 
+                    #         cls="w-16 h-16 object-cover mr-2 float-left"
+                    #     ) if scraped_data and meta_object.get('image') else None,
+                    #     cls="flex-shrink-0"
+                    # ),
+                    Span(parsed_domain, cls="italic text-thin"),
+                    Span(A2(title, href=f'/p/{self["topic_id"]}', cls="font-bold text-2xl")), 
+                    Span(f"({created_at} by {owner})", cls="text-xs text-white group-hover:text-gray-600"), 
+                    cls="flex flex-col"
+                )
+      except ValueError:
+          show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
+      return show
+
+    # cts = Div(Div(rank, cls="w-12 text-right"), Div(show, Hidden(id="id", value=self['topic_id'])), cls="flex gap-4")
 
     cts = Div(
         # Div(
         #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')), 
         #     cls="w-12 text-right"
         # ), 
+        show,
         Div(
-            display_url(self["source_url"], self["source_title"], self["created_at"], self["username"]), 
+            display_topic_url(self["source_url"], self["type"],self["source_title"], self["created_at"], self["username"], self["state"]), 
             Hidden(id="id", value=self['topic_id']),
-        ), 
+        ),
         cls="flex gap-4 group"
+        )
+    # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
+    return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
+
+def renderSubmission(self):
+    def display_submission_url(submission_state, url, type, title, timestr, owner, state):
+        created_at = display_time(timestr)
+        from urllib.parse import urlparse
+        try:
+            parsed_url = urlparse(url)
+            prefix_type = f"{type.capitalize()}: " if type != "" else ""
+            if parsed_url.netloc.startswith('www.'):
+                parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
+            show = Div(
+                      Span(A2(f"Submission State: {submission_state} {prefix_type}{title}", href=url, target="_blank")), 
+                      Span(f"{created_at} by {owner} {state})", cls="text-xs text-gray-400"), 
+                      cls="flex flex-col"
+                  ) if parsed_url.netloc == '' else Div(
+                      Span(A2(f"Submission State: {submission_state} {prefix_type}{title}", href=url, target="_blank")), 
+                      Span(f"({parsed_url.netloc}, {created_at} by {owner} {state})", cls="text-xs text-gray-400"), 
+                      cls="flex flex-col"
+                  )
+        except ValueError:
+            show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
+        return show
+        
+    show = display_submission_url(self["submission_state"], self["source_url"], self["type"],self["source_title"], self["created_at"], self["username"], self["state"])
+    # isRead = '✅ ' if self["read"] else '🔲 '
+
+    # (scraped_data, text_content, meta_object) = scrape_site(self["source_url"])
+# 
+
+    cts = Div(
+        # Div(
+        #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')), 
+        #     cls="w-12 text-right"
+        # ), 
+        show,
         )
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
     return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
@@ -392,17 +431,86 @@ def home(auth):
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
     # The `Title` tag has a special purpose: it sets the title of the page.
 
-    return page_header("Home", auth, card)
+    return page_header("AI News Home",auth, card)
+
+@app.get("/submissions")
+def submissions(auth):
+    # We don't normally need separate "screens" for adding or editing data. Here for instance,
+    # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
+    # new_inp = Input(id="new-title", name="title", placeholder="New Post")
+    # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)")
+    # add = Form(Group(new_inp, new_url, Button("Submit New Post")),
+    #            hx_post="/", target_id='posts-list', hx_swap="afterbegin")
+    # In the MiniDataAPI spec, treating a table as a callable (i.e with `todos(...)` here) queries the table.
+    # Because we called `xtra` in our Beforeware, this queries the todos for the current user only.
+    # We can include the todo objects directly as children of the `Form`, because the `Todo` class has `__ft__` defined.
+    # This is automatically called by FastHTML to convert the `Todo` objects into `FT` objects when needed.
+    # The reason we put the todo list inside a form is so that we can use the 'sortable' js library to reorder them.
+    # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/upvote`
+    # handler to be called.
+
+
+    # data = str(db.q(f"SELECT * FROM {post}"))
+
+    # output = Div(data)
+    # frm = Form(*posts(order_by='rank'),
+    #            id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
+
+    # for access on / page
+    submissionsview = f"""select {topic}.*, 
+    url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state,
+    username
+    from {topic} join {source} on {topic}.primary_source_id = {source}.source_id join {submission} on {submission}.source_id={source}.source_id
+    join {user} on {topic}.user_id={user}.user_id
+    """
+    db.create_view("SubmissionsView", submissionsview, replace=True)
+
+    # tps = db.q(f"select * from {topic}")
+    # print('tps')
+    # print('tps')
+    # import json
+    # print(json.dumps(tps, indent=2))
+    # print('tps')
+    # print('tps')
+
+    submissionsViewLimit = db.q(f"select * from {db.v.SubmissionsView} limit 50")
+
+
+
+    frm = Ul(*[renderSubmission(x) for x in submissionsViewLimit])
+              #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
+    # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
+    card = Card(frm, header=Div('Recent Submissions'), footer=Div(id='current-post'))
+    # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
+    # A handler can return either a single `FT` object or string, or a tuple of them.
+    # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
+    # The `Title` tag has a special purpose: it sets the title of the page.
+
+    return page_header("AI News Submissions",auth, card)
 
 # swyx: submit page
 @app.get("/submit")
 def get(auth):
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
+    
+    new_type =  Select(
+        Option("Ask", value="Ask", selected=True),
+        Option("Show", value="Show", selected=False),
+        Option("Tell", value="Tell", selected=False),
+        cls="selector",
+        id="_verb"
+        # _id="counter",
+        # **{'@click':"alert('Clicked');"},
+    )
+
+
+    
     new_inp = Input(id="new-title", name="title", placeholder="Link Title")
     new_url = Input(id="new-url", name="url", placeholder="Link URL")
+    new_verb = Input(id="verb", name="verb", placeholder="Submission Verb")
     description = Textarea(id="description", name="description", placeholder="Link Description (optional - Markdown supported)", cls="w-full p-4")
-    add = Form(Group(new_inp, new_url,
+    add = Form(Group(new_type, new_inp, new_url,
                     #  Div( owner, created_at,  cls="flex justify-between"),
                      description,
                      Button("Submit New Link or Story", cls="mt-4 p-8 hover:bg-green-700"), cls="flex-col gap-4"),
@@ -419,7 +527,7 @@ def get(auth):
 
 
 @app.post("/submitLink")
-async def submitLink(auth, _source:Source):
+async def submitLink(auth, _source:Source, _verb: str):
     # # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
     # # This is used to clear the input field after adding the new todo.
     # new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
@@ -433,27 +541,32 @@ async def submitLink(auth, _source:Source):
     print('_source', _source)
     try:
       _source = source.insert(_source)
-    except:
+    except Exception as e:
         # SWYX TODO: if its a sqlite3.IntegrityError then its a double post
         # we dont know how to return a nice error here
+        print(f"Error occurred: {str(e)}")
         return RedirectResponse('/', status_code=303)
-        
 
     submission.insert({
         "source_id": _source.source_id,
-        "user_id": auth['user_id']
+        "user_id": auth['user_id'],
+        "type": _verb,
+        "state": "new"
     })
 
     import random
-    topic.insert({
+    result = topic.insert({
         "topic_id": uuid4(),
         "title": _source.title,
+        "type": _verb,
+        "state": "submission",
         "user_id": auth['user_id'],
         "primary_source_id": _source.source_id,
         "description": _source.description,
         "rank": random.randint(0, 500), # # just for demo purposes, comment out in future
         "created_at": _source.created_at
     })
+    print('result', result)
     
     return home(auth)
 
