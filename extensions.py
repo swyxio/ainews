@@ -29,23 +29,6 @@ def display_time(timestr):
         created_at_str = 'N/A'
     return created_at_str
 
-def display_url(url, title, timestr, owner):
-    created_at = display_time(timestr)
-    from urllib.parse import urlparse
-    try:
-        parsed_url = urlparse(url)
-        if parsed_url.netloc.startswith('www.'):
-            parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
-        show = Div(Span(title), 
-                   Span(f"{created_at} by {owner}", cls="text-xs text-gray-400")
-              ) if parsed_url.netloc == '' else Div(
-                  Span(A2(title, href=url, target="_blank")), 
-                  Span(f"({parsed_url.netloc}, {created_at} by {owner})", cls="text-xs text-gray-400"), 
-                  cls="flex flex-col"
-              )
-    except ValueError:
-        show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
-    return show
     
 def page_header(_title, auth, *args): 
   title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
@@ -54,7 +37,7 @@ def page_header(_title, auth, *args):
   top = Div(
           Div(
             Div(
-                Span("AINews", cls="text-[10rem] font-black block -mb-24"),
+                A2("AINews", href="/", cls="text-[10rem] font-black block -mb-24"),
                 # H1(title),
                 cls=""
             ),
@@ -71,5 +54,30 @@ def page_header(_title, auth, *args):
   return Title("[AINews] " + title), top, Container(*args)
 
 
-__all__ = ['A2', 'display_time', 'display_url', 'page_header']
+def scrape_site(url: str):
+ # Check if source_url exists
+  if url:
+      import requests
+      import json
+
+      # Send request to scraper
+      scraper_url = f"https://scraper.smol.ai/?url={url}&maxChars=-1"
+      response = requests.get(scraper_url)
+      
+      if response.status_code == 200:
+          scraped_data = json.loads(response.text)
+          
+          # Parse the scraped data
+          text_content = scraped_data.get("textContent", "")
+          meta_object = scraped_data.get("metaObject", {})
+          return (scraped_data, text_content, meta_object)
+      else:
+          scraped_data = None # P("Failed to fetch scraped content.", cls="text-sm text-red-500 mt-4")
+  else:
+      scraped_data = None
+
+  return scraped_data
+
+
+__all__ = ['A2', 'display_time', 'page_header', 'scrape_site']
 
