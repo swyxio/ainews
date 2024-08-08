@@ -155,7 +155,7 @@ def setup_database(db):
     if created:
         db["topic_vote"].add_foreign_key("user_id", "user", "user_id")
         db["topic_vote"].add_foreign_key("topic_id", "topic", "topic_id")
-        db["topic_vote"].create_index(["user_id", "topic_id"], unique=True)
+        db["topic_vote"].create_index(["user_id", "topic_id"])
 
     # comment_vote table
     created = create_table_if_not_exists("comment_vote", {
