@@ -22,9 +22,8 @@ db = database(sqlite_db_path)
 
 comment = db.t.comment
 tag, tagGroup, tagGroupAssociation, source, submission = db.t.tag, db.t.tag_group, db.t.tag_groupAssociation, db.t.source, db.t.submission
-user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.commentVote
-
-Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass()
+user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.commentVote, db.t.feedback
+Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass(), feedback.dataclass()
 User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote  = user.dataclass(), topic.dataclass(), topicSource.dataclass(), topicTag.dataclass(), bookmark.dataclass(), friend.dataclass(), topicVote.dataclass(), commentVote.dataclass()
 
 
@@ -46,7 +45,9 @@ def before(req, sess):
     # print('reqsget', req.scope)
     auth = req.scope['auth'] = sess.get('auth', None)
     # If the session key is not there, it redirects to the login page.
-    privateroutes = ['/profile', '/submit']
+    private_routes = ['/profile', '/submit']
+    post_allow_routes = ['/feedbackLink']
+
     print('auth1', auth)
     # Query for username from auth. todo: refactor to put in beforeware
     try:
@@ -57,7 +58,8 @@ def before(req, sess):
     print('auth2', auth)
     print('req.method', req.method)
     print('req.url.path', req.url.path)
-    if not auth and (req.method != 'GET' or req.url.path in privateroutes): return login_redir
+    if not auth and (req.url.path in private_routes): return login_redir
+    if not auth and ((req.method != 'GET') and (req.url.path not in post_allow_routes)): return login_redir
     # # `xtra` is part of the MiniDataAPI spec. It adds a filter to queries and DDL statements,
     # # to ensure that the user can only see/edit their own todos.
     # swyx: commented out because want to see global posts
@@ -164,6 +166,7 @@ def loginEndpoint(login:Login, sess):
             "select * from user where username = ?",
             [login.username]
         ))
+        u = dict2obj(u)
     except StopIteration:
         # Handle case when user is not found: create new user
         
@@ -179,7 +182,12 @@ def loginEndpoint(login:Login, sess):
     print(f"User object type: {type(u)}")
     print(f"User object contents: {u}")
 
-    stored_password = u.password
+    try:
+        print(f"Password is attribute:{u.password}")
+        stored_password = u.password
+    except:
+        print(f"Password is dict:{u['password']}")
+        stored_password = u['password']
 
     if not compare_digest(stored_password, login.password):
         print('comapre ' + stored_password + ' and ' + login.password)
@@ -189,7 +197,7 @@ def loginEndpoint(login:Login, sess):
     user_id = u.user_id
 
     print('logging you in ' + user_id)
-    sess['auth'] = u.__dict__
+    sess['auth'] = obj2dict(u)
     print('sess', sess)
     return RedirectResponse('/', status_code=303)
 
@@ -669,6 +677,80 @@ async def submitLink(auth, _source:Source, _verb: str):
     print('result', result)
     
     return allSubmissions(auth)
+
+@app.post("/feedbackLink")
+async def feedbackLink(auth, _feedback:Feedback):
+    _feedback.created_at = datetime.now().isoformat()
+    _feedback.feedback_id = uuid4()
+    print('_feedback', _feedback)
+    try:
+      _feedback = feedback.insert(_feedback)
+    except Exception as e:
+        # SWYX TODO: if its a sqlite3.IntegrityError then its a double post
+        # we dont know how to return a nice error here
+        print(f"Error occurred: {str(e)}")
+        return RedirectResponse('/all', status_code=303)
+    return feedbackThanks(auth)
+
+@app.get("/feedbackThanks")
+def feedbackThanks(auth):
+    card = Card(
+        header=Div(
+            'Thank you for your feedback!', 
+            id='header', cls="text-2xl font-bold mb-6 text-center"),
+        footer=Div(id='current-post'),
+        cls="bg-gray-100 p-8 rounded-lg shadow-lg"
+    )
+
+    return page_header("AI News Feedback", auth, card)
+
+@app.get("/feedback")
+def get(auth):
+    new_type = Select(
+        Option("Feature", value="Feature", selected=True),
+        Option("Bug", value="Bug"),
+        Option("General", value="General"),
+        cls="w-full p-2 mb-4 border rounded shadow-sm",
+        id="type"
+    )
+
+    new_title = Input(id="new-title", name="title", placeholder="Title", cls="w-full p-2 mb-4 border rounded shadow-sm")
+    new_email = Input(id="new-email", name="email", placeholder="Email", cls="w-full p-2 mb-4 border rounded shadow-sm")
+    description = Textarea(id="description", name="description", placeholder="Description (Markdown supported)", 
+                           rows="5",
+                          #  hx_post="/preview",
+                           hx_trigger="keyup changed delay:500ms",
+                           hx_target="#live-preview",
+                           cls="w-full p-2 mb-4 border rounded shadow-sm h-32")
+    
+    add = Form(
+        Div(
+            new_type,
+            new_title,
+            new_email,
+            description,
+            Div(
+                id="live-preview",
+                cls="mt-4 p-4 border rounded shadow-sm markdown",
+            ),
+            Button("Submit Feedback", cls="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded shadow"),
+            cls="space-y-4"
+        ),
+        action="/feedbackLink",
+        method='post',
+        cls="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md"
+    )
+
+    card = Card(
+        add,
+        header=Div(
+            'Submit Feedback for Consideration', 
+            id='header', cls="text-2xl font-bold mb-6 text-center"),
+        footer=Div(id='current-post'),
+        cls="bg-gray-100 p-8 rounded-lg shadow-lg"
+    )
+
+    return page_header("AI News Feedback", auth, card)
 
 # # This is the handler for the reordering of todos.
 # # It's a POST request, which is used by the 'sortable' js library.

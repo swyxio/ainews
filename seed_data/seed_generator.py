@@ -253,6 +253,21 @@ def generate_topic_votes(user_ids, topic_id, max_votes=10):
     
     return votes
 
+def generate_feedback(user_id):
+    feedback_types = ["bug", "feature", "general"]
+    feedback_type = random.choice(feedback_types)
+    feedback = {
+        "table": "feedback",
+        "feedback_id": str(uuid.uuid4()),
+        "type": feedback_type,
+        "email": f"{user_id}@example.com",
+        "title": f"{feedback_type.capitalize()} Feedback",
+        "description": f"This is a {feedback_type} feedback.",
+        "created_at": datetime.now().isoformat()
+    }
+    return feedback
+
+
 
 
 
@@ -574,6 +589,14 @@ def seed_data(num_users, generate_seed_file_path):
         topic_vote_data_list.extend(topic_votes)
     print(f"Generated {len(topic_vote_data_list)} votes for topics.")
 
+    # Generate 10 feedback items
+    feedback_data_list = []
+    for _ in range(10):
+        user_id = random.choice(users_data_list)['user_id']
+        feedback = generate_feedback(user_id)
+        feedback_data_list.append(feedback)
+    print(f"Generated {len(feedback_data_list)} feedback items.")
+
     # Save seed data to example_seed.jsonl
     with open(generate_seed_file_path, 'w') as f:
         # Write users
@@ -618,11 +641,11 @@ def seed_data(num_users, generate_seed_file_path):
         for topic_vote in topic_vote_data_list:
             f.write(json.dumps(topic_vote) + '\n')
 
+        # Write feedback
+        for feedback in feedback_data_list:
+            f.write(json.dumps(feedback) + '\n')
+
     print(f"Seeding completed successfully to {generate_seed_file_path}.")
-
-
-    
-    
 
 
 def main():
