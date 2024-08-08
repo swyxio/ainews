@@ -78,6 +78,7 @@ def page_header(_title, auth, *args):
             A('home', href='/', cls=AHeaderClass), 
             A('submit', href='/submit', cls=AHeaderClass), 
             A('all', href='/all', cls=AHeaderClass), 
+            A('feedback', href='/feedback', cls=AHeaderClass), 
             A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login', cls=AHeaderClass),
             cls="flex justify-between h-16 pr-8"
           ),

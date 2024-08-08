@@ -77,6 +77,16 @@ def setup_database(sqlite_db_path):
         db["source"].create_index(["url"], unique=True)
 
     # submission table
+    created = create_table_if_not_exists("feedback", {
+        "feedback_id": str,
+        "type": str,
+        "email": str,
+        "title": str,
+        "description": str,
+        "created_at": str
+    }, pk="source_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
+
+    # submission table
     created = create_table_if_not_exists("submission", {
         "submission_id": str,
         "type": str,
