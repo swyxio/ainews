@@ -1,0 +1,4 @@
+RUN_SEED_FILE_GENERATOR=true
+SEED_FILE_GENERATOR_FILENAME=./seed_data/example_seed.jsonl
+SEED_FILE=./seed_data/example_seed.jsonl
+SQLITE_DB_PATH=./data/ainews.db

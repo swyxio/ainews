@@ -1,8 +1,20 @@
 import sqlite_utils
 import threading
 from typing import Dict, Any
+import random
+import os
+from dotenv import load_dotenv
 
-def setup_database(db):
+def setup_database(sqlite_db_path):
+    print(f"Setting up database at {sqlite_db_path}")
+    os.makedirs('./data', exist_ok=True)
+
+    # Load environment variables from .env file
+    load_dotenv()
+
+    print(f"Using DB File to Setup DB: {sqlite_db_path}")
+    db = sqlite_utils.Database(sqlite_db_path)
+
     def create_table_if_not_exists(table_name, schema, **kwargs):
         if table_name not in db.table_names():
             db[table_name].create(schema, **kwargs)
@@ -57,6 +69,7 @@ def setup_database(db):
         "url": str,
         "title": str,
         "description": str,
+        "user_id": str,
         "source_type": str,
         "created_at": str
     }, pk="source_id", not_null={"url", "title", "source_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
@@ -65,13 +78,15 @@ def setup_database(db):
 
     # submission table
     created = create_table_if_not_exists("submission", {
+        "submission_id": str,
         "type": str,
         "title": str,
-        "content": str,
+        "description": str,
         "state": str,
         "source_id": str,
-        "user_id": str
-    }, pk="source_id")
+        "user_id": str,
+        "created_at": str
+    }, pk="source_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
         db["submission"].add_foreign_key("source_id", "source", "source_id")
         db["submission"].add_foreign_key("user_id", "user", "user_id")
@@ -80,15 +95,17 @@ def setup_database(db):
     created = create_table_if_not_exists("topic", {
         "topic_id": str,
         "title": str,
-        "content": str,
         "type": str,
         "state": str,
+        "submission_id": str,
         "user_id": str,
         "primary_source_id": str,
         "description": str,
         "rank": int,
         "created_at": str
     }, pk="topic_id", not_null={"title", "type"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
+    if created:
+        db["submission"].add_foreign_key("submission_id", "submission", "submission_id")
 
 
     # topic_source table
@@ -170,6 +187,20 @@ def setup_database(db):
         db["comment_vote"].add_foreign_key("comment_id", "comment", "comment_id")
         db["comment_vote"].create_index(["user_id", "comment_id"], unique=True)
 
+    # comment_vote table
+    created = create_table_if_not_exists("submission_vote", {
+        "vote_id": str,
+        "user_id": str,
+        "submission_id": str,
+        "vote_type": int,
+        "created_at": str
+    }, pk="vote_id", not_null={"user_id", "submission_id", "vote_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
+    if created:
+        db["submission_vote"].add_foreign_key("user_id", "user", "user_id")
+        db["submission_vote"].add_foreign_key("submission_id", "submission", "submission_id")
+        db["submission_vote"].create_index(["user_id", "submission_id"], unique=True)
+
+
 
 def print_schema(db):
     print("\nDatabase schema setup complete.")
@@ -181,7 +212,6 @@ def print_schema(db):
         print(create_sql)
 
     print("\nSchema dump complete.")
-
 
 
 
