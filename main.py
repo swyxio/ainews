@@ -487,7 +487,7 @@ def home(auth):
 
 
 @app.get("/all")
-def allSubmissions(auth):
+def allSubmissions(auth, by_votes: str = None):
     # We don't normally need separate "screens" for adding or editing data. Here for instance,
     # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
     # new_inp = Input(id="new-title", name="title", placeholder="New Post")
@@ -545,12 +545,20 @@ def allSubmissions(auth):
     for _submission in submissionsViewLimit:
         _submission['vote_score'] = vote_score_dict.get(_submission['topic_id'], 0)
 
-
+    sort_by = 'By Date'
+    target = '/all?by_votes=true'
+    if by_votes == 'true':
+        sort_by = 'By Votes'
+        target = '/all'
+        # Sort submissionsViewLimit by vote_score in descending order
+        submissionsViewLimit = sorted(submissionsViewLimit, key=lambda x: x['vote_score'], reverse=True)
 
     frm = Ul(*[renderSubmission(x) for x in submissionsViewLimit])
               #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    card = Card(frm, header=Div('Recent Submissions (you can personally up/downvote max of +/- 5 votes)'), footer=Div(id='current-post'))
+    
+    header_div = Div(Span(f'Recent Submissions ', A(sort_by, href=target, cls="text-blue-600 hover:underline"), ' (you can personally up/downvote max of +/- 5 votes)'))
+    card = Card(frm, header=header_div, footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
     # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
