@@ -82,11 +82,14 @@ app, rt = fast_app(
                # You can use any CSS framework you want, or none at all.
                pico=False,
                hdrs=(
+                     MarkdownJS(),
                   #  picolink,
                      Link(rel='preconnect', href='https://rsms.me/'),
                      Script(src="https://unpkg.com/x-frame-bypass", type="module"),
                      Script(src="https://cdn.tailwindcss.com"), # SWYX TODO: proper deployment of tailwind
                      Link(rel='stylesheet', href='https://rsms.me/inter/inter.css', type='text/css'),
+                    #  #  https://picocss.com/docs/conditional
+                    #  Link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.conditional.min.css', type='text/css'),
                      # `Style` is an `FT` object, which are 3-element lists consisting of:
                      # (tag_name, children_list, attrs_dict).
                      # FastHTML composes them from trees and auto-converts them to HTML when needed.
@@ -104,6 +107,128 @@ app, rt = fast_app(
                            .container {
                             margin: 0 auto;
                            } 
+  .unreset a {
+    color: #1d4ed8;
+    text-decoration: underline;
+  }
+  .unreset p {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .unreset blockquote,
+  figure {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 2.5rem;
+    margin-right: 2.5rem;
+  }
+
+  .unreset hr {
+    border-width: 1px;
+  }
+
+  .unreset h1 {
+    font-size: 2.25rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .unreset h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .unreset h3 {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .unreset h4 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .unreset h5 {
+    font-size: 0.875rem;
+    font-weight: bold;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .unreset h6 {
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .unreset ul,
+  menu {
+    list-style-type: disc;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    padding-left: 2.5rem;
+  }
+
+  .unreset ol {
+    list-style-type: decimal;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 2.5rem;
+  }
+
+  .unreset ul,
+  ol {
+    .unreset ul {
+      list-style-type: circle;
+    }
+
+    .unreset ul,
+    ol {
+      .unreset ul {
+        list-style-type: square;
+      }
+    }
+  }
+
+  .unreset dd {
+    padding-left: 2.5rem;
+  }
+
+  .unreset dl {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .unreset ul,
+  ol,
+  menu,
+  dl {
+    ul,
+    ol,
+    menu,
+    .unreset dl {
+      margin: 0;
+    }
+  }
+
+  b, strong {
+    font-weight: bold;
+  }
+
+  .unreset pre {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
                            """),
                      # Have a look at fasthtml/js.py to see how these Javascript libraries are added to FastHTML.
                      # They are only 5-10 lines of code each, and you can add your own too.
@@ -470,12 +595,13 @@ def home(auth):
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
     card = Card(frm, header=Div(
         # SWYX todo: convert to buttons as filters in future?
-        Span('Ask', cls="text-blue-900 mr-1"),
-        Span('Show', cls="text-blue-900 mr-1"),
+        Span('Ask', cls="text-blue-900 mr-2"),
+        Span('Show', cls="text-blue-900 mr-2"),
         Span('and', cls="mr-2"),
-        Span('Tell', cls="text-blue-900 mr-1"),
+        Span('Tell', cls="text-blue-900 mr-2"),
         "everything in AI",
-        cls="font-medium text-2xl flex mb-4"
+        Span(" (", A2("why?", href="/blog/why-private"), Span(")")),
+        cls="font-medium text-2xl flex mb-16"
     ), footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
     # A handler can return either a single `FT` object or string, or a tuple of them.
@@ -587,7 +713,7 @@ def get(auth):
             description,
             Div(
                 id="live-preview",
-                cls="mt-4 p-4 border rounded shadow-sm markdown",
+                cls="mt-4 p-4 border rounded shadow-sm marked",
             ),
             Button("Submit New Link or Story", cls="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded shadow"),
             cls="space-y-4"
@@ -608,6 +734,8 @@ def get(auth):
                     Li("Tell: To share interesting information or stories"),
                     cls="list-disc pl-5 text-sm text-gray-600 mb-4 flex flex-col max-w-[300px] mx-auto text-left"
                 ),
+               Span("AIN is manually curated. These submissions and votes only go to the /all page and we update /all ~once a day.",
+                    cls="text-sm"),
                 cls="mt-2"
             ),
             id='header', cls="text-2xl font-bold mb-6 text-center"),
@@ -962,6 +1090,98 @@ async def get(id:int):
 @app.get("/tables")
 async def get_tables():
     return {"tables": list(db.t)}
+
+# Function to read and parse markdown files
+def parse_markdown_file(file_path):
+  import yaml
+  with open(file_path, 'r') as file:
+      content = file.read()
+      # Split the file into frontmatter and markdown content
+      parts = content.split('---', 2)
+      if len(parts) == 3:
+          frontmatter = yaml.safe_load(parts[1])
+          md_content = parts[2]
+      else:
+          frontmatter = {}
+          md_content = content
+  # Add date to frontmatter if not present
+  if 'date' not in frontmatter:
+      from datetime import datetime
+      import os
+      file_mtime = os.path.getmtime(file_path)
+      frontmatter['date'] = datetime.fromtimestamp(file_mtime).strftime('%Y-%m-%d %H:%M:%S')
+  
+  return frontmatter, md_content
+
+@app.get("/blog/")
+async def blog_list(auth):
+  import os
+  blog_posts = []
+  content_dir = './content'
+  for filename in os.listdir(content_dir):
+      if filename.endswith('.md'):
+          file_path = os.path.join(content_dir, filename)
+          frontmatter, _ = parse_markdown_file(file_path)
+          slug = os.path.splitext(filename)[0]
+          blog_posts.append({
+              'title': frontmatter.get('title', 'Untitled'),
+              'date': frontmatter.get('date', 'No date'),
+              'slug': slug
+          })
+  
+  # Sort blog posts by date, newest first
+  blog_posts.sort(key=lambda x: x['date'], reverse=True)
+  
+  # Render the blog list
+  blog_list_html = Div(
+      H1("Blog Posts", cls="text-4xl font-bold mb-8 text-center"),
+      Ul(*[
+          Li(
+              Div(
+                  A2(post['title'], href=f"/blog/{post['slug']}", cls="text-xl font-semibold hover:text-blue-600 transition-colors duration-300"),
+                  Span(f"{post['date']}", cls="block text-sm text-gray-500 mt-1"),
+                  cls="mb-6 pb-4 border-b border-gray-200 last:border-b-0"
+              )
+          )
+          for post in blog_posts
+      ], cls="space-y-4"),
+      cls="container mx-auto px-4 py-8 max-w-2xl"
+  )
+  
+  return page_header("Blog", auth, blog_list_html)
+
+@app.get("/blog/{slug}")
+async def blog_post(auth, slug: str):
+  # import markdown
+  content_dir = './content'
+  file_path = os.path.join(content_dir, f"{slug}.md")
+  
+  if not os.path.exists(file_path):
+      blog_list_html = await blog_list(auth)
+      return page_header("Blog Post Not Found", auth, 
+          Div(
+              H1("Blog Post Not Found", cls="text-3xl font-bold mb-8 text-red-600"),
+              P("The requested blog post could not be found. Here's a list of available posts:", cls="mb-8"),
+              blog_list_html,
+              cls="container mx-auto px-4 py-8"
+          )
+      )
+  frontmatter, md_content = parse_markdown_file(file_path)
+  # Render the blog post
+  blog_post_html = Div(
+      Div(
+          H1(frontmatter.get('title', 'Untitled'), cls="text-4xl font-bold mb-4 text-gray-800"),
+          Div(frontmatter.get('date', 'No date'), cls="text-sm text-gray-600 mb-8"),
+          cls="border-b border-gray-200 pb-8 mb-8"
+      ),
+      Div(md_content,  **{"data-theme":"light"}, cls="prose prose-lg max-w-none mb-12 text-gray-700 marked unreset"),
+      A2("← Back to Blog List", href="/blog/", cls="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out"),
+      cls="container mx-auto px-4 py-12 max-w-3xl"
+  )
+  
+  return page_header(frontmatter.get('title', 'Blog Post'), auth, blog_post_html)
+
+
 
 @app.get("/seed")
 async def seed():

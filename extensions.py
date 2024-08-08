@@ -64,7 +64,7 @@ def display_submission_url(submission_state, url, type, title, timestr, owner, s
 def page_header(_title, auth, *args): 
   title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
 
-  AHeaderClass = "border-l-2 font-light px-8 inline-flex border-black items-center hover:text-blue-500 text-blue-700"
+  AHeaderClass = "border-l-2 font-bold px-8 inline-flex border-black items-center hover:text-blue-500 text-blue-700"
   top = Div(
           Div(
             Div(
