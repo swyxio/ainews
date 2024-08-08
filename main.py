@@ -6,23 +6,22 @@ from uuid import uuid4
 from hmac import compare_digest
 from db import setup_database
 import sqlite_utils
-
+import seed
 import os
 
-# Create /data folder if it doesn't exist
-os.makedirs('./data', exist_ok=True)
-db = sqlite_utils.Database("./data/ainews.db") #only for live reload, and this causes some weirdness with users if ur still have a session with a new user but the db is reset and reseeded
-setup_database(db)
+# Get the database name from SEED_FILE environment variable
+sqlite_db_path = os.getenv('SQLITE_DB_PATH', "./data/ainews.db")
 
-if db["user"].count == 0:
-    import seed
-    seed.seed_objects(db)
+setup_database(sqlite_db_path)
+print(f"Creating Application DB Connection: {sqlite_db_path}")
+db = sqlite_utils.Database(sqlite_db_path) #only for live reload, and this causes some weirdness with users if ur still have a session with a new user but the db is reset and reseeded
+seed.seed_objects(sqlite_db_path, db)
 db.close()
 
+db = database(sqlite_db_path)
 
-db = database('./data/ainews.db')
-
-comment, tag, tagGroup, tagGroupAssociation, source, submission = db.t.comment, db.t.tag, db.t.tag_group, db.t.tag_groupAssociation, db.t.source, db.t.submission
+comment = db.t.comment
+tag, tagGroup, tagGroupAssociation, source, submission = db.t.tag, db.t.tag_group, db.t.tag_groupAssociation, db.t.source, db.t.submission
 user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.commentVote
 
 Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass()
@@ -320,7 +319,6 @@ def renderTopic(self):
         )
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
     return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
-
 def renderSubmission(self):
     def display_submission_url(submission_state, url, type, title, timestr, owner, state):
         created_at = display_time(timestr)
@@ -823,7 +821,7 @@ async def submit_comment(auth, _comment: Comment):
         return RedirectResponse('/login', status_code=303)
     
     # Set the user_id from the authenticated user
-    _comment.user_id = auth['user_id']
+    _coment.user_id = auth['user_id']
     _comment.comment_id = uuid4()
     _comment.parent_id = None
     # Set the created_at timestamp
