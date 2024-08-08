@@ -21,7 +21,7 @@ import random
 
 valid_source_types = ["article", "video", "podcast", "book", "website"]
 valid_topic_types = ["show", "ask", "tell"]
-valid_topic_states = ["submitted", "published", "archived", "hidden"]
+valid_topic_states = ["submission", "top", "archived", "hidden"]
 
     
 
@@ -212,6 +212,47 @@ def generate_comment_threads(user_ids, topic_ids, num_threads):
         thread = generate_comment_thread(user_ids, topic_id)
         all_threads.extend(thread)
     return all_threads
+
+def generate_topic_vote(user_id, topic_id, positive_weight=0.5):
+    vote_types = [1, -1]  # 1 for upvote, -1 for downvote
+    vote_type = random.choices(vote_types, weights=[positive_weight, 1 - positive_weight])[0]
+    vote = {
+        "table": "topic_vote",
+        "vote_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "topic_id": topic_id,
+        "vote_type": vote_type,
+        "created_at": datetime.now().isoformat()
+    }
+    return vote
+
+def generate_topic_votes(user_ids, topic_id, max_votes=10):
+    votes = []
+    num_votes = random.randint(0, max_votes)
+    
+    # Dictionary to keep track of user votes
+    user_vote_count = {user_id: 0 for user_id in user_ids}
+    
+    # Generate a random positive_weight between 0.4 and 0.7
+    positive_weight = random.uniform(0.4, 1.0)
+    
+    for _ in range(num_votes):
+        # Choose a random user
+        user_id = random.choice(user_ids)
+        
+        # Check if the user has reached the vote limit
+        if user_vote_count[user_id] >= 5:
+            continue
+        
+        # Generate a vote
+        vote = generate_topic_vote(user_id, topic_id, positive_weight)
+        
+        # Update the user's vote count
+        user_vote_count[user_id] += 1
+        votes.append(vote)
+    
+    return votes
+
 
 
 
@@ -525,6 +566,14 @@ def seed_data(num_users, generate_seed_file_path):
         comment_data_list.append(comment)
     print(f"Generated {num_additional_comments} additional random comments.")
     
+    # Generate topic votes for each topic
+    topic_vote_data_list = []
+    for topic in topic_data_list:
+        user_ids = [user['user_id'] for user in users_data_list]
+        topic_votes = generate_topic_votes(user_ids, topic['topic_id'])
+        topic_vote_data_list.extend(topic_votes)
+    print(f"Generated {len(topic_vote_data_list)} votes for topics.")
+
     # Save seed data to example_seed.jsonl
     with open(generate_seed_file_path, 'w') as f:
         # Write users
@@ -565,6 +614,9 @@ def seed_data(num_users, generate_seed_file_path):
 
         for comment in comment_data_list:
             f.write(json.dumps(comment) + '\n')
+
+        for topic_vote in topic_vote_data_list:
+            f.write(json.dumps(topic_vote) + '\n')
 
     print(f"Seeding completed successfully to {generate_seed_file_path}.")
 

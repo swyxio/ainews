@@ -1043,7 +1043,7 @@ async def submit_comment(auth, _comment: Comment):
         return RedirectResponse('/login', status_code=303)
     
     # Set the user_id from the authenticated user
-    _coment.user_id = auth['user_id']
+    _comment.user_id = auth['user_id']
     _comment.comment_id = uuid4()
     _comment.parent_id = None
     # Set the created_at timestamp
