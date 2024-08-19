@@ -279,6 +279,26 @@ def seed_data(num_users, generate_seed_file_path):
         user_data = generate_user_data()
         users_data_list.append(user_data)
 
+    sdelap_user_id = str(uuid.uuid4())
+    sdelap_user = {
+        "table": "user",
+        "user_id": sdelap_user_id,
+        "username": "sdelap",
+        "email": "sdelap@gmail.com",
+        "password": "password",
+        "markdown_bio": "I'm a software developer and a data scientist."
+    }
+    users_data_list.append(sdelap_user)
+
+    user_roles_data_list = []
+    user_roles_data_list.append({
+        "table": "user_roles",
+        "user_id": sdelap_user_id,
+        "role": "admin"
+    })
+    print(f"Generated {len(user_roles_data_list)} roles..")
+
+
     tag_names = [
         "technology", "science", "programming", "AI", "machine learning",
         "data science", "web development", "cybersecurity", "blockchain",
@@ -602,6 +622,9 @@ def seed_data(num_users, generate_seed_file_path):
         # Write users
         for user in users_data_list:
             f.write(json.dumps(user) + '\n')
+
+        for user_role in user_roles_data_list:
+            f.write(json.dumps(user_role) + '\n')
         
         # Write tags
         for tag in tag_data_list:

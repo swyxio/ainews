@@ -5,6 +5,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 def seed_objects(sqlite_db_path, db):
+    load_dotenv(override=True)
+
     user_count = next(db.query("SELECT count(*) FROM user"))['count(*)']
     if user_count == 0:
         # Check if RUN_SEED_FILE_GENERATOR is set to true in the .env file
@@ -16,7 +18,6 @@ def seed_objects(sqlite_db_path, db):
             generate_seed()
             print("New seed file generated.")
 
-        load_dotenv()
         seed_file = os.getenv('SEED_FILE', './seed_data/seed.jsonl')
         print(f"Seeding DB Objects from {seed_file} to {sqlite_db_path}")
     

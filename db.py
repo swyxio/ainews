@@ -34,6 +34,14 @@ def setup_database(sqlite_db_path):
     }, pk="user_id", not_null={"username"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
         db["user"].create_index(["username"], unique=True)
+
+    # user_roles table
+    created = create_table_if_not_exists("user_roles", {
+        "user_id": str,
+        "role": str
+    }, pk=("user_id", "role"))
+    if created:
+        db["user_roles"].add_foreign_key("user_id", "user", "user_id")        
     
 
     # tag table

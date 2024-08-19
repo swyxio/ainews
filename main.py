@@ -4,29 +4,14 @@ from extensions import A2, display_time, page_header, scrape_site
 from datetime import datetime
 from uuid import uuid4
 from hmac import compare_digest
-from db import setup_database
-import sqlite_utils
-import seed
-import os
+from db_config import setup_db  # Add this import
+from admin import setup_admin_routes
 
-# Get the database name from SEED_FILE environment variable
-sqlite_db_path = os.getenv('SQLITE_DB_PATH', "./data/ainews.db")
-
-setup_database(sqlite_db_path)
-print(f"Creating Application DB Connection: {sqlite_db_path}")
-db = sqlite_utils.Database(sqlite_db_path) #only for live reload, and this causes some weirdness with users if ur still have a session with a new user but the db is reset and reseeded
-seed.seed_objects(sqlite_db_path, db)
-db.close()
-
-db = database(sqlite_db_path)
-
-comment = db.t.comment
-tag, tagGroup, tagGroupAssociation, source, submission = db.t.tag, db.t.tag_group, db.t.tag_groupAssociation, db.t.source, db.t.submission
-user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.commentVote, db.t.feedback
-Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass(), feedback.dataclass()
-User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote  = user.dataclass(), topic.dataclass(), topicSource.dataclass(), topicTag.dataclass(), bookmark.dataclass(), friend.dataclass(), topicVote.dataclass(), commentVote.dataclass()
-
-
+# Remove the DB Setup Code block and replace it with:
+db, (
+    Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,
+    comment, tag, tagGroup, tagGroupAssociation, source, submission, user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback
+) = setup_db()
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -48,14 +33,21 @@ def before(req, sess):
     private_routes = ['/profile', '/submit']
     post_allow_routes = ['/feedbackLink']
 
-    print('auth1', auth)
+    print('cookie_req_auth', auth)
     # Query for username from auth. todo: refactor to put in beforeware
     try:
         print('user_id', auth['user_id'])
         auth = next(db.query("SELECT * FROM user WHERE user_id = ?", [auth['user_id']]))
+        if auth is not None:
+            roles = next(db.query("SELECT * FROM user_roles WHERE user_id = ?", [auth['user_id']]), None)
+            if roles is not None:
+                auth['roles'] = roles
+            else:
+                auth['roles'] = None
+        
     except:
         auth = None
-    print('auth2', auth)
+    print('auth_post_before', auth)
     print('req.method', req.method)
     print('req.url.path', req.url.path)
     if not auth and (req.url.path in private_routes): return login_redir
@@ -291,17 +283,27 @@ def loginEndpoint(login:Login, sess):
             "select * from user where username = ?",
             [login.username]
         ))
-        u = dict2obj(u)
     except StopIteration:
-        # Handle case when user is not found: create new user
-        
         # import bcrypt
-        u = user.insert({
-            "user_id": uuid4(),
-            "username" : login.username,
-            "password" : login.password,
-            "markdown_bio": f"Default bio for {login.username}"
-          })
+        if u is not None:
+            u = user.insert({
+                "user_id": uuid4(),
+                "username" : login.username,
+                "password" : login.password,
+                "markdown_bio": f"Default bio for {login.username}"
+            })
+
+    if u is not None:
+        roles_query = db.query("SELECT * FROM user_roles WHERE user_id = ?", [u['user_id']])
+        roles = next(roles_query, None)
+        if roles is not None:
+            u['roles'] = roles
+        else:
+            u['roles'] = None
+    
+    
+    u = dict2obj(u)
+
         # return RedirectResponse('/signup', status_code=303)  # Or handle as appropriate
 
     print(f"User object type: {type(u)}")
@@ -1282,5 +1284,7 @@ async def get_schema(table_name: str):
     if table_name not in db.t:
         raise HTTPException(status_code=404, detail="Table not found")
     return {"schema": db.t[table_name].schema}    
+
+setup_admin_routes(app)
 
 serve()

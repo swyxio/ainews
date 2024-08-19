@@ -65,6 +65,17 @@ def page_header(_title, auth, *args):
   title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
 
   AHeaderClass = "border-l-2 font-bold px-8 inline-flex border-black items-center hover:text-blue-500 text-blue-700"
+
+  header_links = []
+  header_links.append(A('home', href='/', cls=AHeaderClass))
+  header_links.append(A('submit', href='/submit', cls=AHeaderClass))
+  header_links.append(A('all', href='/all', cls=AHeaderClass))
+  header_links.append(A('feedback', href='/feedback', cls=AHeaderClass))
+  if (auth is not None) and (auth.get("roles") is not None) and (auth["roles"].get("role") == "admin"):
+      header_links.append(A('admin', href='/admin', cls=AHeaderClass)),
+  header_links.append(A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login', cls=AHeaderClass))
+
+
   top = Div(
           Div(
             Div(
@@ -75,11 +86,7 @@ def page_header(_title, auth, *args):
             cls="flex justify-between w-[640px] m-auto"
           ),
           Div(
-            A('home', href='/', cls=AHeaderClass), 
-            A('submit', href='/submit', cls=AHeaderClass), 
-            A('all', href='/all', cls=AHeaderClass), 
-            A('feedback', href='/feedback', cls=AHeaderClass), 
-            A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login', cls=AHeaderClass),
+            *header_links,
             cls="flex justify-between h-16 pr-8"
           ),
           cls="flex justify-between bg-[#fff200] mb-16"
