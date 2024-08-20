@@ -12,6 +12,29 @@ def A2(*c, **kwargs)->FT:
         kwargs['cls'] += " hover:text-blue-400 text-blue-600"
     return A(*c, **kwargs)
 
+def Modal(title, content, id=None, cls=""):
+    return Div(
+        Div(
+            Div(
+                Div(
+                    H3(title, cls="text-lg font-semibold text-gray-900"),
+
+                    cls="flex items-center justify-between p-4 md:p-5 border-b rounded-t"
+                ),
+                Div(
+                    content,
+                    cls="p-4 md:p-5 space-y-4"
+                ),
+                cls="relative bg-white rounded-lg shadow"
+            ),
+            cls="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none"
+        ),
+        Div(cls="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"),
+        id=id,
+        cls=f"fixed inset-0 z-50 overflow-y-auto {cls}"
+    )
+
+
 
 def display_time(timestr):
     now = datetime.now()

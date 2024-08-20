@@ -1,5 +1,5 @@
 from fasthtml.common import *
-from extensions import A2, display_time, page_header, scrape_site
+from extensions import A2, display_time, page_header, scrape_site, Modal
 from db_config import *  # Import all database-related entities and functions
 import asyncio
 
@@ -65,6 +65,12 @@ def setup_admin_routes(app):
                        cls="text-red-600 hover:underline")
                     for s in valid_topic_states if s != submission_state
                 ]
+                delete_link = A2(f"[Delete]", 
+                                 href=f"#",
+                                 hx_get=f"/admin/confirm_delete/{self['topic_id']}",
+                                 hx_target="#delete-modal-container",
+                                 cls="text-red-600 hover:underline")
+
                 show = Div(
                         Div(
                             Div(
@@ -84,16 +90,7 @@ def setup_admin_routes(app):
                             Div(
                                 Span(*admin_links),
                                 Br(),
-                                Span(
-
-
-                                    A2(f"[Delete]", 
-                                       href=f"/admin/delete_submission/{self['topic_id']}", 
-                                       hx_post=f"/admin/delete_submission/{self['topic_id']}",
-                                       hx_target=f"#post-{self['topic_id']}",
-                                       hx_swap="outerHTML",
-                                       cls="text-red-600 hover:underline")
-                                    ),
+                                Span(delete_link),
                                 cls="inline-block font-bold"),
                             cls="flex items-start p-2"
                         )                         
@@ -129,6 +126,7 @@ def setup_admin_routes(app):
 
         cts = Div(
             show,
+            Div(id="delete-modal-container")  # Container for the delete confirmation modal
         )
         return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
 
@@ -267,5 +265,46 @@ def setup_admin_routes(app):
 
         # Render the updated submission
         return renderSubmission(updated_submission)
+    
+    # Add these new routes to the setup_admin_routes function
+    @app.get("/admin/confirm_delete/{topic_id}")
+    def confirm_delete(topic_id: str, auth):
+        # Query to get vote and comment counts
+        counts = db.q(f"""
+            SELECT 
+                (SELECT COUNT(*) FROM {topicVote} WHERE topic_id = ?) as vote_count,
+                (SELECT COUNT(*) FROM {comment} WHERE topic_id = ?) as comment_count
+        """, [topic_id, topic_id])[0]
+
+        content = Div(
+            P(f"Are you sure you want to delete this topic? The topic has {counts['vote_count']} votes and {counts['comment_count']} comments."),
+            Div(
+                Button("Yes", hx_post=f"/admin/delete_submission/{topic_id}", hx_target="#delete-modal-container"),
+                Button("No", hx_get="/admin/close_modal", hx_target="#delete-modal-container"),
+                cls="flex justify-end space-x-2 mt-4"
+            )
+        )
+
+        return Modal("Confirm Deletion", content, id="delete-confirmation-modal")
+
+    @app.post("/admin/delete_submission/{topic_id}")
+    def delete_submission(topic_id: str, auth):
+        # Perform the deletion logic here
+        # For example:
+        # db.executescript(f"""
+        #     DELETE FROM {topic} WHERE topic_id = ?;
+        #     DELETE FROM {submission} WHERE submission_id = (SELECT submission_id FROM {topic} WHERE topic_id = ?);
+        # """, [topic_id, topic_id])
+
+        content = Div(
+            P("The topic has been successfully deleted."),
+            Button("Close", hx_get="/admin/close_modal", hx_target="#delete-modal-container", cls="mt-4")
+        )
+
+        return Modal("Success", content, id="success-modal")
+
+    @app.get("/admin/close_modal")
+    def close_modal():
+        return ""  # Return an empty string to close the modal    
     
      
