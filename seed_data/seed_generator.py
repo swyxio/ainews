@@ -22,6 +22,8 @@ import random
 valid_source_types = ["article", "video", "podcast", "book", "website"]
 valid_topic_types = ["show", "ask", "tell"]
 valid_topic_states = ["submission", "top", "archived", "hidden"]
+valid_submission_types = ["show", "ask", "tell"]
+valid_submission_states = ["submission", "top"]
 
     
 
@@ -80,8 +82,6 @@ def generate_tag_group_association(group_id, tag_id):
         "group_id": group_id,
         "tag_id": tag_id
     }
-valid_submission_types = ["show", "ask", "tell"]
-valid_submission_states = ["published", "new"]
 
 def generate_submission(submission_type, title, description, submission_state, source_id, user_id):
 
@@ -139,7 +139,7 @@ def generate_topic(submission, source, topic_state=None, topic_type=None):
         topic = {
             "table": "topic",
             "topic_id": topic_id,
-            "title": submission['title'],
+            "title": "TopicTitle - " + submission['title'],
             "type": topic_type,
             "state": topic_state,
             "submission_id": submission['submission_id'],

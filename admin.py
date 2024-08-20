@@ -1,11 +1,16 @@
 from fasthtml.common import *
 from extensions import A2, display_time, page_header, scrape_site
 from db_config import *  # Import all database-related entities and functions
+import asyncio
 
 db, (
     Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,
     comment, tag, tagGroup, tagGroupAssociation, source, submission, user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback
 ) = setup_db()
+
+valid_topic_states = ["submission", "top", "archived", "hidden"]
+
+
 
 def setup_admin_routes(app):
     @app.get("/admin")
@@ -41,7 +46,8 @@ def setup_admin_routes(app):
         return page_header("Admin Home", auth, card)
 
     def renderSubmission(self):
-        def display_submission_url(submission_state, url, type, title, timestr, owner, state):
+        
+        def display_submission_url(url, type, title, timestr, owner, submission_state):
             created_at = display_time(timestr)
             from urllib.parse import urlparse
             try:
@@ -50,39 +56,80 @@ def setup_admin_routes(app):
                 if parsed_url.netloc.startswith('www.'):
                     parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
                 parsed_domain = parsed_url if isinstance(parsed_url, str) else parsed_url.netloc if parsed_url.netloc else 'N/A'
+                admin_links = [
+                    A2(f"[{s.capitalize()}]", 
+                       href=f"/admin/change_state/{self['topic_id']}/{s}", 
+                       hx_post=f"/admin/change_state/{self['topic_id']}/{s}",
+                       hx_target=f"#post-{self['topic_id']}",
+                       hx_swap="outerHTML",
+                       cls="text-red-600 hover:underline")
+                    for s in valid_topic_states if s != submission_state
+                ]
                 show = Div(
-                        Span(
-                            Span(
-                                Span(self["vote_score"] if self["vote_score"] else 0, id=f"score-{self['topic_id']}", cls="w-2"),
-                                cls="inline-flex items-center space-x-2"
+                        Div(
+                            Div(
+                                Span(self["vote_score"] if self["vote_score"] else 0, id=f"score-{self['topic_id']}", cls="w-8 text-right inline-block"),
+                                cls="inline-block mr-4 w-8 fixed-width"),
+                            Div(
+                                Span(
+                                    self["submission_state"],
+                                    cls="bg-green-100 text-green-800 px-2 py-1 rounded-md border border-green-300 text-sm mr-2 mb-2 inline-block w-24 text-center"
+                                )
+                                , cls="inline-block mr-4"),
+                            Div(
+                                A2(f"Topic Title: {prefix_type}{self['title']}", href=url, target="_blank", cls="font-bold block"),
+                                A2(f"Submission Title: {prefix_type}{self['submission_title']}", href=url, target="_blank", cls="font-bold block"),
+                                cls="inline-block mr-4"
                             ),
-                            Span(
-                                self["submission_state"],
-                                cls="bg-gray-100 text-gray-800 px-2 py-1 rounded-md border border-gray-300 text-sm mr-2 mb-2"
-                            ),
-                            A2(f"{prefix_type}{title}", href=url, target="_blank")
-                        ), 
-                        Span(f"({parsed_url.netloc}, {created_at} by {owner} {state})", cls="text-xs text-gray-400"), 
-                        cls="flex flex-col mb-2"
+                            Div(
+                                Span(*admin_links),
+                                Br(),
+                                Span(
+
+
+                                    A2(f"[Delete]", 
+                                       href=f"/admin/delete_submission/{self['topic_id']}", 
+                                       hx_post=f"/admin/delete_submission/{self['topic_id']}",
+                                       hx_target=f"#post-{self['topic_id']}",
+                                       hx_swap="outerHTML",
+                                       cls="text-red-600 hover:underline")
+                                    ),
+                                cls="inline-block font-bold"),
+                            cls="flex items-start p-2"
+                        )                         
                     )
+                # show = Div(
+                #     Div(
+                #         Span(
+                #             Span(str(self["vote_score"] if self["vote_score"] is not None else 0), id=f"score-{self['topic_id']}", cls="w-2"),
+                #             cls="inline-flex items-center space-x-2"
+                #         ),
+                #         Span(
+                #             submission_state.capitalize(),
+                #             cls="bg-gray-100 text-gray-800 px-2 py-1 rounded-md border border-gray-300 text-sm mr-2 mb-2"
+                #         ),
+                #         Span(
+                #             A2(f"Topic Title: {prefix_type}{self['title']}", href=url, target="_blank", cls="font-bold"),
+                #             A2(f"Submission Title: {prefix_type}{self['submission_title']}", href=url, target="_blank", cls="font-bold"),
+                #             cls="flex flex-col"
+                #         ),
+                #         Span(
+                #             *admin_links,
+                #             cls="text-sm text-gray-600 ml-2"
+                #         )
+                #     ), 
+                #     Span(f"({parsed_url.netloc}, {created_at} by {owner} {submission_state})", cls="text-xs text-gray-400"), 
+                #     cls="flex flex-col mb-2"
+                # )
             except ValueError:
                 show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
             return show
             
-        show = display_submission_url(self["submission_state"], self["source_url"], self["type"],self["source_title"], self["created_at"], self["username"], self["state"])
-        # isRead = '✅ ' if self["read"] else '🔲 '
-
-        # (scraped_data, text_content, meta_object) = scrape_site(self["source_url"])
-    # 
+        show = display_submission_url(self["source_url"], self["type"], self["source_title"], self["created_at"], self["username"], self["state"])
 
         cts = Div(
-            # Div(
-            #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')), 
-            #     cls="w-12 text-right"
-            # ), 
             show,
-            )
-        # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
+        )
         return Li(Form(cts), id=f'post-{self["topic_id"]}', cls='list-none')
 
     @app.get("/admin/submissions")
@@ -110,7 +157,7 @@ def setup_admin_routes(app):
 
         # for access on / page
         submissionsview = f"""select {topic}.*, 
-        url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state,
+        url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state, {submission}.title as submission_title,
         username
         from {topic} join {source} on {topic}.primary_source_id = {source}.source_id join {submission} on {submission}.source_id={source}.source_id
         join {user} on {topic}.user_id={user}.user_id
@@ -152,7 +199,9 @@ def setup_admin_routes(app):
             # Sort submissionsViewLimit by vote_score in descending order
             submissionsViewLimit = sorted(submissionsViewLimit, key=lambda x: x['vote_score'], reverse=True)
 
-        frm = Ul(*[renderSubmission(x) for x in submissionsViewLimit])
+        frm = Ul(*[renderSubmission(x) for x in submissionsViewLimit], cls="divide-y divide-gray-300")
+        for index, li in enumerate(frm.children):
+            li.attrs['class'] = f"{'bg-gray-200' if index % 2 == 0 else 'bg-white'}"
                 #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
         # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
         
@@ -163,10 +212,60 @@ def setup_admin_routes(app):
         # In the case of a tuple, the stringified objects are concatenated and returned to the browser.
         # The `Title` tag has a special purpose: it sets the title of the page.
 
-        return page_header("AI News Submissions",auth, card)
+        return page_header("AI News Submissions",auth, card, wide=True)
 
 
         @app.get("/admin/users")
         def admin_users(auth):
             # User management logic
             return page_header("User Management", auth, Div("User List"))
+
+    @app.post("/admin/change_state/{topic_id}/{new_state}")
+    def change_submission_state(topic_id: str, new_state: str, auth):
+        if new_state not in valid_topic_states:
+                return "Invalid state", 400
+
+        statements = f"""
+            UPDATE {topic} SET state = "{new_state}" WHERE topic_id = "{topic_id}";
+            UPDATE {submission} SET state = "{new_state}" WHERE submission_id = 
+            (SELECT submission_id FROM {topic} WHERE topic_id = "{topic_id}");
+        """
+        print('statements', statements)
+
+        db.executescript(statements)
+        
+        # Fetch the updated submission data
+        submission_sql = f"""select {topic}.*, 
+        url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state, {submission}.title as submission_title, username
+        from {topic} join {source} on {topic}.primary_source_id = {source}.source_id join {submission} on {submission}.source_id={source}.source_id
+        join {user} on {topic}.user_id={user}.user_id where {topic}.topic_id = ?
+        """
+        print('submission_sql', submission_sql)
+
+
+        # Debug query to select all columns from topic where topic_id matches
+        debug_result = db.q("SELECT * FROM topic WHERE topic_id = ?", {topic_id})
+        print("Debug query result:", debug_result)
+
+
+        submission_result = db.q(submission_sql, {topic_id})        
+        if len(submission_result) == 1:
+            updated_submission = submission_result[0]
+        else:
+            if len(submission_result) > 1:
+                return "Multiple submissions found", 404
+            else:
+                return "No submission found", 404
+            
+        # Add vote_score to the updated submission
+        vote_score = db.q(f"""
+            SELECT SUM(CASE WHEN vote_type = 1 THEN 1 WHEN vote_type = -1 THEN -1 ELSE 0 END) as vote_score
+            FROM {topicVote}
+            WHERE topic_id = ?
+        """, [topic_id])[0]['vote_score']
+        updated_submission['vote_score'] = vote_score if vote_score is not None else 0
+
+        # Render the updated submission
+        return renderSubmission(updated_submission)
+    
+     

@@ -34,19 +34,22 @@ def before(req, sess):
     post_allow_routes = ['/feedbackLink']
 
     print('cookie_req_auth', auth)
+
+    user_id = auth['user_id']
     # Query for username from auth. todo: refactor to put in beforeware
     try:
         print('user_id', auth['user_id'])
-        auth = next(db.query("SELECT * FROM user WHERE user_id = ?", [auth['user_id']]))
+        auth = next(db.query("SELECT * FROM user WHERE user_id = ?", [user_id]))
         if auth is not None:
-            roles = next(db.query("SELECT * FROM user_roles WHERE user_id = ?", [auth['user_id']]), None)
+            roles = next(db.query("SELECT * FROM user_roles WHERE user_id = ?", [user_id]), None)
             if roles is not None:
                 auth['roles'] = roles
             else:
                 auth['roles'] = None
         
-    except:
+    except Exception as e:
         auth = None
+        raise e
     print('auth_post_before', auth)
     print('req.method', req.method)
     print('req.url.path', req.url.path)
@@ -785,11 +788,13 @@ async def submitLink(auth, _source:Source, _verb: str):
         print(f"Error occurred: {str(e)}")
         return RedirectResponse('/all', status_code=303)
 
+    # For Now Lets Use the Same Submission States as Topic States
+    # valid_topic_states = ["submission", "top", "archived", "hidden"]
     submission.insert({
         "source_id": _source.source_id,
         "user_id": auth['user_id'],
         "type": _verb,
-        "state": "new"
+        "state": "submission"
     })
 
     import random

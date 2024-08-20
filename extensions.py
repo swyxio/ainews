@@ -61,7 +61,7 @@ def display_submission_url(submission_state, url, type, title, timestr, owner, s
     return show
     
     
-def page_header(_title, auth, *args): 
+def page_header(_title, auth, *args, wide=False): 
   title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
 
   AHeaderClass = "border-l-2 font-bold px-8 inline-flex border-black items-center hover:text-blue-500 text-blue-700"
@@ -120,4 +120,3 @@ def scrape_site(url: str):
 
 
 __all__ = ['A2', 'display_time', 'page_header', 'display_submission_url', 'scrape_site']
-
