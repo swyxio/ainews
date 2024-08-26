@@ -16,9 +16,9 @@ def setup_db():
 
     comment = db.t.comment
     tag, tagGroup, tagGroupAssociation, source, submission = db.t.tag, db.t.tag_group, db.t.tag_groupAssociation, db.t.source, db.t.submission
-    user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.commentVote, db.t.feedback
+    user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.comment_vote, db.t.feedback
     Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass(), feedback.dataclass()
-    User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote  = user.dataclass(), topic.dataclass(), topicSource.dataclass(), topicTag.dataclass(), bookmark.dataclass(), friend.dataclass(), topicVote.dataclass(), commentVote.dataclass()
+    User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote, = user.dataclass(), topic.dataclass(), topicSource.dataclass(), topicTag.dataclass(), bookmark.dataclass(), friend.dataclass(), topicVote.dataclass(), commentVote.dataclass()
 
     return db, (
         Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,

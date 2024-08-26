@@ -4,9 +4,9 @@ from db_config import *  # Import all database-related entities and functions
 import asyncio
 
 db, (
-    Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,
-    comment, tag, tagGroup, tagGroupAssociation, source, submission, user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback
-) = setup_db()
+        Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,
+        comment, tag, tagGroup, tagGroupAssociation, source, submission, user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback
+    ) = setup_db()
 
 valid_topic_states = ["submission", "top", "archived", "hidden"]
 
@@ -51,11 +51,12 @@ def setup_admin_routes(app):
             created_at = display_time(timestr)
             from urllib.parse import urlparse
             try:
-                parsed_url = urlparse(url)
                 prefix_type = f"{type.capitalize()}: " if type != "" else ""
-                if parsed_url.netloc.startswith('www.'):
-                    parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
-                parsed_domain = parsed_url if isinstance(parsed_url, str) else parsed_url.netloc if parsed_url.netloc else 'N/A'
+                # if url is not None:
+                #     parsed_url = urlparse(url)
+                #     if parsed_url.netloc.startswith('www.'):
+                #         parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
+                #         parsed_domain = parsed_url if isinstance(parsed_url, str) else parsed_url.netloc if parsed_url.netloc else 'N/A'
                 admin_links = [
                     A2(f"[{s.capitalize()}]", 
                        href=f"/admin/change_state/{self['topic_id']}/{s}", 
@@ -154,14 +155,17 @@ def setup_admin_routes(app):
         #            id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
 
         # for access on / page
-        submissionsview = f"""select {topic}.*, 
+        submissionsview_sql = f"""select {topic}.*, 
         url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state, {submission}.title as submission_title,
         username
-        from {topic} join {source} on {topic}.primary_source_id = {source}.source_id join {submission} on {submission}.source_id={source}.source_id
-        join {user} on {topic}.user_id={user}.user_id
+        from {topic} 
+        left join {source} on {topic}.primary_source_id = {source}.source_id 
+        left join {submission} on {topic}.submission_id = {submission}.submission_id
+        left join {user} on {topic}.user_id={user}.user_id
         order by {topic}.created_at desc
         """
-        db.create_view("SubmissionsView", submissionsview, replace=True)
+        print('submissionsview_sql', submissionsview_sql)
+        db.create_view("SubmissionsView", submissionsview_sql, replace=True)
 
         # tps = db.q(f"select * from {topic}")
         # print('tps')
@@ -273,14 +277,19 @@ def setup_admin_routes(app):
         counts = db.q(f"""
             SELECT 
                 (SELECT COUNT(*) FROM {topicVote} WHERE topic_id = ?) as vote_count,
+                (SELECT SUM(vote_type) FROM {topicVote} WHERE topic_id = ?) as vote_score,
                 (SELECT COUNT(*) FROM {comment} WHERE topic_id = ?) as comment_count
-        """, [topic_id, topic_id])[0]
+        """, [topic_id, topic_id, topic_id])[0]
 
         content = Div(
-            P(f"Are you sure you want to delete this topic? The topic has {counts['vote_count']} votes and {counts['comment_count']} comments."),
+            P(f"Are you sure you want to delete this topic?"),
+            Br(),
+            P(f"Votes: {counts['vote_count']}"),
+            P(f"Vote Score: {counts['vote_score']}"),
+            P(f"Comment Count: {counts['comment_count']}"),
             Div(
-                Button("Yes", hx_post=f"/admin/delete_submission/{topic_id}", hx_target="#delete-modal-container"),
-                Button("No", hx_get="/admin/close_modal", hx_target="#delete-modal-container"),
+                Button("[Yes]", hx_post=f"/admin/delete_submission/{topic_id}", hx_target="#delete-modal-container", cls="text-red-600 hover:underline font-bold"),
+                Button("[No]", hx_get="/admin/close_modal", hx_target="#delete-modal-container", cls="text-red-600 hover:underline font-bold"),
                 cls="flex justify-end space-x-2 mt-4"
             )
         )
@@ -290,12 +299,82 @@ def setup_admin_routes(app):
     @app.post("/admin/delete_submission/{topic_id}")
     def delete_submission(topic_id: str, auth):
         # Perform the deletion logic here
-        # For example:
-        # db.executescript(f"""
-        #     DELETE FROM {topic} WHERE topic_id = ?;
-        #     DELETE FROM {submission} WHERE submission_id = (SELECT submission_id FROM {topic} WHERE topic_id = ?);
-        # """, [topic_id, topic_id])
+        # Get the submission associated with the topic and join with topic_source
+        submission_query = f"""
+            SELECT s.* FROM "submission" s, "topic" t WHERE s.submission_id = t.submission_id and t.topic_id = ?
+        """
+        print('submission_query', submission_query)
+        submission_result = db.q(submission_query, [topic_id])
 
+        submission_to_delete = None
+        if not submission_result:
+            return "No associated submission found", 404
+        else:
+            submission_to_delete = submission_result[0]
+            print(f'submission_result being deleted for {topic_id}:', topic_id)
+            print(submission_result)
+
+        if submission_to_delete is not None:
+            # Explain plan style print out with actual records
+            print("Deletion plan:")
+
+            # 1. Source
+            source_record = db.q(f"SELECT * FROM {source} WHERE source_id = ?", [submission_to_delete['source_id']])
+            print(f"1. Delete source with source_id: {submission_to_delete['source_id']}")
+            print(f"   Record: {source_record}")
+
+            # 3. Orphaned topic_source entries
+            orphaned_topic_sources = db.q(f"SELECT * FROM {topicSource} WHERE topic_id = ? OR source_id NOT IN (SELECT DISTINCT source_id FROM {source})", [topic_id])
+            print(f"3. Clean up orphaned topic_source entries for topic_id: {topic_id}")
+            print(f"   Records: {orphaned_topic_sources}")
+
+            # 4. Orphaned topic_tag entries
+            orphaned_topic_tags = db.q(f"SELECT * FROM {topicTag} WHERE topic_id = ?", [topic_id])
+            print(f"4. Clean up orphaned topic_tag entries for topic_id: {topic_id}")
+            print(f"   Records: {orphaned_topic_tags}")
+
+            # 5. Comments
+            comments = db.q(f"SELECT * FROM {comment} WHERE topic_id = ?", [topic_id])
+            print(f"5. Delete comments for topic_id: {topic_id}")
+            print(f"   Records: {comments}")
+
+            # 6. Votes
+            votes = db.q(f"SELECT * FROM {topicVote} WHERE topic_id = ?", [topic_id])
+            print(f"6. Delete votes for topic_id: {topic_id}")
+            print(f"   Records: {votes}")
+
+            # 7. Bookmarks
+            bookmarks = db.q(f"SELECT * FROM {bookmark} WHERE topic_id = ?", [topic_id])
+            print(f"7. Delete bookmarks for topic_id: {topic_id}")
+            print(f"   Records: {bookmarks}")
+
+            # 8. Topic
+            topic_record = db.q(f"SELECT * FROM {topic} WHERE topic_id = ?", [topic_id])
+            print(f"8. Delete topic with topic_id: {topic_id}")
+            print(f"   Record: {topic_record}")
+
+            # 9. Submission
+            submission_record = db.q(f"SELECT * FROM {submission} WHERE submission_id = ?", [submission_to_delete['submission_id']])
+            print(f"9. Delete submission with submission_id: {submission_to_delete['submission_id']}")
+            print(f"   Record: {submission_record}")
+
+            print("Executing deletion plan...")
+
+            delete_sql = ""
+            delete_sql += f"DELETE FROM {topicSource} WHERE topic_id = \"{topic_id}\" OR source_id NOT IN (SELECT DISTINCT source_id FROM {source});\n"
+            delete_sql += f"DELETE FROM {topicTag} WHERE topic_id = \"{topic_id}\";\n"
+            delete_sql += f"DELETE FROM {comment} WHERE topic_id = \"{topic_id}\";\n"
+            delete_sql += f"DELETE FROM {topicVote} WHERE topic_id = \"{topic_id}\";\n"
+            delete_sql += f"DELETE FROM {bookmark} WHERE topic_id = \"{topic_id}\";\n"
+            delete_sql += f"DELETE FROM {topic} WHERE topic_id = \"{topic_id}\";\n"
+            delete_sql += f"DELETE FROM {submission} WHERE submission_id = \"{submission_to_delete['submission_id']}\";\n"
+            delete_sql += f"DELETE FROM {source} WHERE source_id = \"{submission_to_delete['source_id']}\";\n"
+
+            print('delete_sql\n', delete_sql)
+            result = db.executescript(delete_sql)
+            print("Done")
+            return ""
+            
         content = Div(
             P("The topic has been successfully deleted."),
             Button("Close", hx_get="/admin/close_modal", hx_target="#delete-modal-container", cls="mt-4")
