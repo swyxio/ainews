@@ -52,11 +52,7 @@ def setup_admin_routes(app):
             from urllib.parse import urlparse
             try:
                 prefix_type = f"{type.capitalize()}: " if type != "" else ""
-                # if url is not None:
-                #     parsed_url = urlparse(url)
-                #     if parsed_url.netloc.startswith('www.'):
-                #         parsed_url = parsed_url._replace(netloc=parsed_url.netloc[4:])
-                #         parsed_domain = parsed_url if isinstance(parsed_url, str) else parsed_url.netloc if parsed_url.netloc else 'N/A'
+
                 admin_links = [
                     A2(f"[{s.capitalize()}]", 
                        href=f"/admin/change_state/{self['topic_id']}/{s}", 
@@ -95,30 +91,7 @@ def setup_admin_routes(app):
                                 cls="inline-block font-bold"),
                             cls="flex items-start p-2"
                         )                         
-                    )
-                # show = Div(
-                #     Div(
-                #         Span(
-                #             Span(str(self["vote_score"] if self["vote_score"] is not None else 0), id=f"score-{self['topic_id']}", cls="w-2"),
-                #             cls="inline-flex items-center space-x-2"
-                #         ),
-                #         Span(
-                #             submission_state.capitalize(),
-                #             cls="bg-gray-100 text-gray-800 px-2 py-1 rounded-md border border-gray-300 text-sm mr-2 mb-2"
-                #         ),
-                #         Span(
-                #             A2(f"Topic Title: {prefix_type}{self['title']}", href=url, target="_blank", cls="font-bold"),
-                #             A2(f"Submission Title: {prefix_type}{self['submission_title']}", href=url, target="_blank", cls="font-bold"),
-                #             cls="flex flex-col"
-                #         ),
-                #         Span(
-                #             *admin_links,
-                #             cls="text-sm text-gray-600 ml-2"
-                #         )
-                #     ), 
-                #     Span(f"({parsed_url.netloc}, {created_at} by {owner} {submission_state})", cls="text-xs text-gray-400"), 
-                #     cls="flex flex-col mb-2"
-                # )
+                    )               
             except ValueError:
                 show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
             return show
@@ -133,28 +106,6 @@ def setup_admin_routes(app):
 
     @app.get("/admin/submissions")
     def allSubmissions(auth, by_votes: str = None):
-        # We don't normally need separate "screens" for adding or editing data. Here for instance,
-        # we're using an `hx-post` to add a new todo, which is added to the start of the list (using 'afterbegin').
-        # new_inp = Input(id="new-title", name="title", placeholder="New Post")
-        # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)")
-        # add = Form(Group(new_inp, new_url, Button("Submit New Post")),
-        #            hx_post="/", target_id='posts-list', hx_swap="afterbegin")
-        # In the MiniDataAPI spec, treating a table as a callable (i.e with `todos(...)` here) queries the table.
-        # Because we called `xtra` in our Beforeware, this queries the todos for the current user only.
-        # We can include the todo objects directly as children of the `Form`, because the `Todo` class has `__ft__` defined.
-        # This is automatically called by FastHTML to convert the `Todo` objects into `FT` objects when needed.
-        # The reason we put the todo list inside a form is so that we can use the 'sortable' js library to reorder them.
-        # That library calls the js `end` event when dragging is complete, so our trigger here causes our `/upvote`
-        # handler to be called.
-
-
-        # data = str(db.q(f"SELECT * FROM {post}"))
-
-        # output = Div(data)
-        # frm = Form(*posts(order_by='rank'),
-        #            id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
-
-        # for access on / page
         submissionsview_sql = f"""select {topic}.*, 
         url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state, {submission}.title as submission_title,
         username
@@ -288,8 +239,26 @@ def setup_admin_routes(app):
             P(f"Vote Score: {counts['vote_score']}"),
             P(f"Comment Count: {counts['comment_count']}"),
             Div(
-                Button("[Yes]", hx_post=f"/admin/delete_submission/{topic_id}", hx_target="#delete-modal-container", cls="text-red-600 hover:underline font-bold"),
-                Button("[No]", hx_get="/admin/close_modal", hx_target="#delete-modal-container", cls="text-red-600 hover:underline font-bold"),
+                Button("[Yes]",                     
+                    **{"hx-on:htmx:before-request": "console.log('before-request')",
+                       "hx-on:htmx:after-request": f"""
+                       if(event.detail.successful) {{
+                           let target = document.querySelector('#post-{topic_id}'); 
+                           if (target) {{ 
+                               target.outerHTML = ""; 
+                                let modal = document.querySelector('#delete-confirmation-modal');
+                                if (modal) {{
+                                    modal.remove();
+                                }}
+                           }}
+                       }} 
+                       """
+                       },   
+                    hx_post=f"/admin/delete_submission/{topic_id}", 
+                    hx_target=f"#post-{topic_id}",  # Target the specific row
+                    hx_swap="none",  # Replace the entire row                       
+                    cls="text-red-600 hover:underline font-bold"),
+                Button("[No]", hx_get="/admin/close_modal", hx_target="#delete-modal-container", cls="text-red-600 hover:underline font-bold"),                    
                 cls="flex justify-end space-x-2 mt-4"
             )
         )
@@ -373,7 +342,7 @@ def setup_admin_routes(app):
             print('delete_sql\n', delete_sql)
             result = db.executescript(delete_sql)
             print("Done")
-            return ""
+            return Response(content="", status_code=200)
             
         content = Div(
             P("The topic has been successfully deleted."),

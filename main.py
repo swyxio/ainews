@@ -7,6 +7,9 @@ from hmac import compare_digest
 from db_config import setup_db  # Add this import
 from admin import setup_admin_routes
 
+# Configure FastHTML to use the full htmx.js instead of htmx.min.js
+FastHTML.htmx_js = "https://unpkg.com/htmx.org@1.9.2/dist/htmx.js"
+
 # Remove the DB Setup Code block and replace it with:
 db, (
         Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,
