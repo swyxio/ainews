@@ -1,4 +1,4 @@
 python-fasthtml
 uvicorn>=0.29
-sqlite_utils
+sqlite-utils
 requests
