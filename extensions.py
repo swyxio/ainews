@@ -12,6 +12,29 @@ def A2(*c, **kwargs)->FT:
         kwargs['cls'] += " hover:text-blue-400 text-blue-600"
     return A(*c, **kwargs)
 
+def Modal(title, content, id=None, cls=""):
+    return Div(
+        Div(
+            Div(
+                Div(
+                    H3(title, cls="text-lg font-semibold text-gray-900"),
+
+                    cls="flex items-center justify-between p-4 md:p-5 border-b rounded-t"
+                ),
+                Div(
+                    content,
+                    cls="p-4 md:p-5 space-y-4"
+                ),
+                cls="relative bg-white rounded-lg shadow"
+            ),
+            cls="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none"
+        ),
+        Div(cls="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"),
+        id=id,
+        cls=f"fixed inset-0 z-50 overflow-y-auto {cls}"
+    )
+
+
 
 def display_time(timestr):
     now = datetime.now()
@@ -61,10 +84,21 @@ def display_submission_url(submission_state, url, type, title, timestr, owner, s
     return show
     
     
-def page_header(_title, auth, *args): 
+def page_header(_title, auth, *args, wide=False): 
   title = _title # title = f"{_title} - {auth['username'] if auth else ''}"
 
   AHeaderClass = "border-l-2 font-bold px-8 inline-flex border-black items-center hover:text-blue-500 text-blue-700"
+
+  header_links = []
+  header_links.append(A('home', href='/', cls=AHeaderClass))
+  header_links.append(A('submit', href='/submit', cls=AHeaderClass))
+  header_links.append(A('all', href='/all', cls=AHeaderClass))
+  header_links.append(A('feedback', href='/feedback', cls=AHeaderClass))
+  if (auth is not None) and (auth.get("roles") is not None) and (auth["roles"].get("role") == "admin"):
+      header_links.append(A('admin', href='/admin', cls=AHeaderClass)),
+  header_links.append(A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login', cls=AHeaderClass))
+
+
   top = Div(
           Div(
             Div(
@@ -75,11 +109,7 @@ def page_header(_title, auth, *args):
             cls="flex justify-between w-[640px] m-auto"
           ),
           Div(
-            A('home', href='/', cls=AHeaderClass), 
-            A('submit', href='/submit', cls=AHeaderClass), 
-            A('all', href='/all', cls=AHeaderClass), 
-            A('feedback', href='/feedback', cls=AHeaderClass), 
-            A(auth['username'], href='/profile', cls=AHeaderClass) if auth else A2('login', href='/login', cls=AHeaderClass),
+            *header_links,
             cls="flex justify-between h-16 pr-8"
           ),
           cls="flex justify-between bg-[#fff200] mb-16"
@@ -113,4 +143,3 @@ def scrape_site(url: str):
 
 
 __all__ = ['A2', 'display_time', 'page_header', 'display_submission_url', 'scrape_site']
-

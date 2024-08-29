@@ -34,6 +34,14 @@ def setup_database(sqlite_db_path):
     }, pk="user_id", not_null={"username"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
         db["user"].create_index(["username"], unique=True)
+
+    # user_roles table
+    created = create_table_if_not_exists("user_roles", {
+        "user_id": str,
+        "role": str
+    }, pk=("user_id", "role"))
+    if created:
+        db["user_roles"].add_foreign_key("user_id", "user", "user_id")        
     
 
     # tag table
@@ -74,7 +82,7 @@ def setup_database(sqlite_db_path):
         "created_at": str
     }, pk="source_id", not_null={"url", "title", "source_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["source"].create_index(["url"], unique=True)
+        db["source"].create_index(["url"])
 
     # submission table
     created = create_table_if_not_exists("feedback", {
@@ -84,7 +92,7 @@ def setup_database(sqlite_db_path):
         "title": str,
         "description": str,
         "created_at": str
-    }, pk="source_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
+    }, pk="feedback_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
 
     # submission table
     created = create_table_if_not_exists("submission", {
@@ -96,7 +104,7 @@ def setup_database(sqlite_db_path):
         "source_id": str,
         "user_id": str,
         "created_at": str
-    }, pk="source_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
+    }, pk="submission_id", defaults={"created_at": "CURRENT_TIMESTAMP"})
     if created:
         db["submission"].add_foreign_key("source_id", "source", "source_id")
         db["submission"].add_foreign_key("user_id", "user", "user_id")
@@ -115,7 +123,7 @@ def setup_database(sqlite_db_path):
         "created_at": str
     }, pk="topic_id", not_null={"title", "type"}, defaults={"rank": 0, "created_at": "CURRENT_TIMESTAMP"})
     if created:
-        db["submission"].add_foreign_key("submission_id", "submission", "submission_id")
+        db["topic"].add_foreign_key("submission_id", "submission", "submission_id")
 
 
     # topic_source table
@@ -196,21 +204,6 @@ def setup_database(sqlite_db_path):
         db["comment_vote"].add_foreign_key("user_id", "user", "user_id")
         db["comment_vote"].add_foreign_key("comment_id", "comment", "comment_id")
         db["comment_vote"].create_index(["user_id", "comment_id"], unique=True)
-
-    # comment_vote table
-    created = create_table_if_not_exists("submission_vote", {
-        "vote_id": str,
-        "user_id": str,
-        "submission_id": str,
-        "vote_type": int,
-        "created_at": str
-    }, pk="vote_id", not_null={"user_id", "submission_id", "vote_type"}, defaults={"created_at": "CURRENT_TIMESTAMP"})
-    if created:
-        db["submission_vote"].add_foreign_key("user_id", "user", "user_id")
-        db["submission_vote"].add_foreign_key("submission_id", "submission", "submission_id")
-        db["submission_vote"].create_index(["user_id", "submission_id"], unique=True)
-
-
 
 def print_schema(db):
     print("\nDatabase schema setup complete.")

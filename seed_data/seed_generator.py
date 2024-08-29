@@ -22,6 +22,8 @@ import random
 valid_source_types = ["article", "video", "podcast", "book", "website"]
 valid_topic_types = ["show", "ask", "tell"]
 valid_topic_states = ["submission", "top", "archived", "hidden"]
+valid_submission_types = ["show", "ask", "tell"]
+valid_submission_states = ["submission", "top"]
 
     
 
@@ -80,8 +82,6 @@ def generate_tag_group_association(group_id, tag_id):
         "group_id": group_id,
         "tag_id": tag_id
     }
-valid_submission_types = ["show", "ask", "tell"]
-valid_submission_states = ["published", "new"]
 
 def generate_submission(submission_type, title, description, submission_state, source_id, user_id):
 
@@ -139,7 +139,7 @@ def generate_topic(submission, source, topic_state=None, topic_type=None):
         topic = {
             "table": "topic",
             "topic_id": topic_id,
-            "title": submission['title'],
+            "title": "TopicTitle - " + submission['title'],
             "type": topic_type,
             "state": topic_state,
             "submission_id": submission['submission_id'],
@@ -278,6 +278,26 @@ def seed_data(num_users, generate_seed_file_path):
     for _ in range(num_users):
         user_data = generate_user_data()
         users_data_list.append(user_data)
+
+    sdelap_user_id = str(uuid.uuid4())
+    sdelap_user = {
+        "table": "user",
+        "user_id": sdelap_user_id,
+        "username": "sdelap",
+        "email": "sdelap@gmail.com",
+        "password": "password",
+        "markdown_bio": "I'm a software developer and a data scientist."
+    }
+    users_data_list.append(sdelap_user)
+
+    user_roles_data_list = []
+    user_roles_data_list.append({
+        "table": "user_roles",
+        "user_id": sdelap_user_id,
+        "role": "admin"
+    })
+    print(f"Generated {len(user_roles_data_list)} roles..")
+
 
     tag_names = [
         "technology", "science", "programming", "AI", "machine learning",
@@ -602,6 +622,9 @@ def seed_data(num_users, generate_seed_file_path):
         # Write users
         for user in users_data_list:
             f.write(json.dumps(user) + '\n')
+
+        for user_role in user_roles_data_list:
+            f.write(json.dumps(user_role) + '\n')
         
         # Write tags
         for tag in tag_data_list:

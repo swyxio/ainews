@@ -1,32 +1,20 @@
 
-from fasthtml.common import *
+from fasthtml.common import * # type: ignore
 from extensions import A2, display_time, page_header, scrape_site
 from datetime import datetime
 from uuid import uuid4
 from hmac import compare_digest
-from db import setup_database
-import sqlite_utils
-import seed
-import os
+from db_config import setup_db  # Add this import
+from admin import setup_admin_routes
 
-# Get the database name from SEED_FILE environment variable
-sqlite_db_path = os.getenv('SQLITE_DB_PATH', "./data/ainews.db")
+# Configure FastHTML to use the full htmx.js instead of htmx.min.js
+FastHTML.htmx_js = "https://unpkg.com/htmx.org@1.9.2/dist/htmx.js"
 
-setup_database(sqlite_db_path)
-print(f"Creating Application DB Connection: {sqlite_db_path}")
-db = sqlite_utils.Database(sqlite_db_path) #only for live reload, and this causes some weirdness with users if ur still have a session with a new user but the db is reset and reseeded
-seed.seed_objects(sqlite_db_path, db)
-db.close()
-
-db = database(sqlite_db_path)
-
-comment = db.t.comment
-tag, tagGroup, tagGroupAssociation, source, submission = db.t.tag, db.t.tag_group, db.t.tag_groupAssociation, db.t.source, db.t.submission
-user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback = db.t.user, db.t.topic, db.t.topic_source, db.t.topic_tag, db.t.bookmark, db.t.friend, db.t.topic_vote, db.t.commentVote, db.t.feedback
-Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback = comment.dataclass(), tag.dataclass(), tagGroup.dataclass(), tagGroupAssociation.dataclass(), source.dataclass(), submission.dataclass(), feedback.dataclass()
-User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote  = user.dataclass(), topic.dataclass(), topicSource.dataclass(), topicTag.dataclass(), bookmark.dataclass(), friend.dataclass(), topicVote.dataclass(), commentVote.dataclass()
-
-
+# Remove the DB Setup Code block and replace it with:
+db, (
+        Comment, Tag, TagGroup, TagGroupAssociation, Source, Submission, Feedback, User, Topic, TopicSource, TopicTag, Bookmark, Friend, TopicVote, CommentVote,
+        comment, tag, tagGroup, tagGroupAssociation, source, submission, user, topic, topicSource, topicTag, bookmark, friend, topicVote, commentVote, feedback
+    ) = setup_db()
 
 # Any Starlette response class can be returned by a FastHTML route handler.
 # In that case, FastHTML won't change it at all.
@@ -47,15 +35,26 @@ def before(req, sess):
     # If the session key is not there, it redirects to the login page.
     private_routes = ['/profile', '/submit']
     post_allow_routes = ['/feedbackLink']
+    print('cookie_req_auth', auth)
 
-    print('auth1', auth)
-    # Query for username from auth. todo: refactor to put in beforeware
-    try:
-        print('user_id', auth['user_id'])
-        auth = next(db.query("SELECT * FROM user WHERE user_id = ?", [auth['user_id']]))
-    except:
-        auth = None
-    print('auth2', auth)
+    if auth is not None:
+        user_id = auth.get('user_id', None)
+        if user_id is not None:
+            # Query for username from auth. todo: refactor to put in beforeware
+            try:
+                print('user_id', auth['user_id'])
+                auth = next(db.query("SELECT * FROM user WHERE user_id = ?", [user_id]), None)
+                if auth is not None:
+                    roles = next(db.query("SELECT * FROM user_roles WHERE user_id = ?", [user_id]), None)
+                    if roles is not None:
+                        auth['roles'] = roles
+                    else:
+                        auth['roles'] = None
+
+            except Exception as e:
+                auth = None
+    
+    print('auth_post_before', auth)
     print('req.method', req.method)
     print('req.url.path', req.url.path)
     if not auth and (req.url.path in private_routes): return login_redir
@@ -79,6 +78,7 @@ bware = Beforeware(before, skip=[r'/favicon\.ico', r'/static/.*', r'.*\.css', '/
 app, rt = fast_app(
               #  live=os.getenv('DEV') == 'true', # https://docs.fastht.ml/ref/live_reload.html
                before=bware,
+               debug=True,
                # PicoCSS is a particularly simple CSS framework, with some basic integration built in to FastHTML.
                # `picolink` is pre-defined with the header for the PicoCSS stylesheet.
                # You can use any CSS framework you want, or none at all.
@@ -98,9 +98,9 @@ app, rt = fast_app(
                      # You can also use plain HTML strings in handlers and headers,
                      # which will be auto-escaped, unless you use `NotStr(...string...)`.
                      Style("""
-                           :root { 
+                           :root {
                             font-size: 8pt;
-                            font-family: Inter, Verdana, Geneva, sans-serif; 
+                            font-family: Inter, Verdana, Geneva, sans-serif;
                             font-feature-settings: 'liga' 1, 'calt' 1; /* fix for Chrome */
                            }
                             @supports (font-variation-settings: normal) {
@@ -108,7 +108,7 @@ app, rt = fast_app(
                             }
                            .container {
                             margin: 0 auto;
-                           } 
+                           }
   .unreset a {
     color: #1d4ed8;
     text-decoration: underline;
@@ -261,7 +261,7 @@ def loginroute(auth):
             Button('Login / Signup', cls="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded"),
             cls="space-y-4"
         ),
-        action='/login', method='post', 
+        action='/login', method='post',
         cls="mt-[15rem] max-w-md mx-auto bg-white p-8 border rounded-lg shadow-md")
     # If a user visits the URL directly, FastHTML auto-generates a full HTML page.
     # However, if the URL is accessed by HTMX, then one HTML partial is created for each element of the tuple.
@@ -286,22 +286,29 @@ class Login: username:str; password:str
 @app.post("/login")
 def loginEndpoint(login:Login, sess):
     if not login.username or not login.password: return login_redir
-    try: 
-        u = next(db.query(
-            "select * from user where username = ?",
-            [login.username]
-        ))
-        u = dict2obj(u)
+    try:
+        u = next(db.query("select * from user where username = ?", [login.username]), None)
     except StopIteration:
-        # Handle case when user is not found: create new user
-        
         # import bcrypt
-        u = user.insert({
-            "user_id": uuid4(),
-            "username" : login.username,
-            "password" : login.password,
-            "markdown_bio": f"Default bio for {login.username}"
-          })
+        if u is not None:
+            u = user.insert({
+                "user_id": uuid4(),
+                "username" : login.username,
+                "password" : login.password,
+                "markdown_bio": f"Default bio for {login.username}"
+            })
+
+    if u is not None:
+        roles_query = db.query("SELECT * FROM user_roles WHERE user_id = ?", [u['user_id']])
+        roles = next(roles_query, None)
+        if roles is not None:
+            u['roles'] = roles
+        else:
+            u['roles'] = None
+
+
+    u = dict2obj(u)
+
         # return RedirectResponse('/signup', status_code=303)  # Or handle as appropriate
 
     print(f"User object type: {type(u)}")
@@ -333,7 +340,7 @@ def profile(auth):
     # Check if user is authenticated
     if not auth:
         return RedirectResponse('/login', status_code=303)
-    
+
     # Create a list of user fields
     user_fields = [
         Div(
@@ -357,7 +364,7 @@ def profile(auth):
             cls="mb-2"
         ),
         Div(
-            Span(f"markdown_bio: ", cls="font-bold"), 
+            Span(f"markdown_bio: ", cls="font-bold"),
             Textarea(str(auth['markdown_bio']), id="markdown_bio", name="markdown_bio", rows=5, cls="w-full p-2 border rounded"),
             cls="mb-2"
         ),
@@ -377,7 +384,7 @@ def profile(auth):
         logout_button,
         cls="p-4 rounded-lg"
     )
-    
+
     return page_header(
         "User Profile",
         auth,
@@ -422,15 +429,15 @@ def renderTopic(self):
           parsed_domain = parsed_url.netloc
           show = Div(
                     # Div(
-                    #     Img(src=meta_object.get('image', ''), 
-                    #         alt="Article image", 
+                    #     Img(src=meta_object.get('image', ''),
+                    #         alt="Article image",
                     #         cls="w-16 h-16 object-cover mr-2 float-left"
                     #     ) if scraped_data and meta_object.get('image') else None,
                     #     cls="flex-shrink-0"
                     # ),
                     Div(Span(type, cls="bg-blue-100 p-1 border border-blue-800 rounded"), Span(parsed_domain, cls="italic text-thin"), cls="mb-2"),
-                    Span(A2(title, href=f'/p/{self["topic_id"]}', cls="font-bold text-2xl")), 
-                    Span(f"({created_at} by {owner})", cls="text-xs text-white group-hover:text-gray-600"), 
+                    Span(A2(title, href=f'/p/{self["topic_id"]}', cls="font-bold text-2xl")),
+                    Span(f"({created_at} by {owner})", cls="text-xs text-white group-hover:text-gray-600"),
                     cls="flex flex-col"
                 )
       except ValueError:
@@ -441,12 +448,12 @@ def renderTopic(self):
 
     cts = Div(
         # Div(
-        #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')), 
+        #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')),
         #     cls="w-12 text-right"
-        # ), 
+        # ),
         show,
         Div(
-            display_topic_url(self["source_url"], self["type"],self["source_title"], self["created_at"], self["username"], self["state"]), 
+            display_topic_url(self["source_url"], self["type"],self["source_title"], self["created_at"], self["username"], self["state"]),
             Hidden(id="id", value=self['topic_id']),
         ),
         cls="flex gap-4 group"
@@ -476,25 +483,25 @@ def renderSubmission(self):
                             cls="bg-gray-100 text-gray-800 px-2 py-1 rounded-md border border-gray-300 text-sm mr-2 mb-2"
                         ),
                         A2(f"{prefix_type}{title}", href=url, target="_blank")
-                      ), 
-                      Span(f"({parsed_url.netloc}, {created_at} by {owner} {state})", cls="text-xs text-gray-400"), 
+                      ),
+                      Span(f"({parsed_url.netloc}, {created_at} by {owner} {state})", cls="text-xs text-gray-400"),
                       cls="flex flex-col mb-2"
                   )
         except ValueError:
             show = Span(title) if url is None else Span(A2(title, href=url), 'NA')
         return show
-        
+
     show = display_submission_url(self["submission_state"], self["source_url"], self["type"],self["source_title"], self["created_at"], self["username"], self["state"])
     # isRead = '✅ ' if self["read"] else '🔲 '
 
     # (scraped_data, text_content, meta_object) = scrape_site(self["source_url"])
-# 
+#
 
     cts = Div(
         # Div(
-        #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')), 
+        #     Span(A2(str(self["rank"] or 0), href=f'/p/{self["topic_id"]}')),
         #     cls="w-12 text-right"
-        # ), 
+        # ),
         show,
         )
     # Any FT object can take a list of children as positional args, and a dict of attrs as keyword args.
@@ -567,7 +574,7 @@ def home(auth):
     #            id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
 
     # for access on / page
-    topicsview = f"""select {topic}.*, 
+    topicsview = f"""select {topic}.*,
     url as source_url, {source}.title as source_title, {source}.description as source_description,
     username
     from {topic} join {source} on {topic}.primary_source_id = {source}.source_id
@@ -644,7 +651,7 @@ def allSubmissions(auth, by_votes: str = None):
     #            id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
 
     # for access on / page
-    submissionsview = f"""select {topic}.*, 
+    submissionsview = f"""select {topic}.*,
     url as source_url, {source}.title as source_title, {source}.description as source_description, {submission}.state as submission_state,
     username
     from {topic} join {source} on {topic}.primary_source_id = {source}.source_id join {submission} on {submission}.source_id={source}.source_id
@@ -690,7 +697,7 @@ def allSubmissions(auth, by_votes: str = None):
     frm = Ul(*[renderSubmission(x) for x in submissionsViewLimit])
               #  id='posts-list', cls='sortable', hx_post="/upvote", hx_trigger="end")
     # We create an empty 'current-post' Div at the bottom of our page, as a target for the details and editing views.
-    
+
     header_div = Div(Span(f'Recent Submissions ', A(sort_by, href=target, cls="text-blue-600 hover:underline"), ' (you can personally up/downvote max of +/- 5 votes)'))
     card = Card(frm, header=header_div, footer=Div(id='current-post'))
     # PicoCSS uses `<Main class='container'>` page content; `Container` is a tiny function that generates that.
@@ -704,9 +711,9 @@ def allSubmissions(auth, by_votes: str = None):
 @app.get("/submit")
 def get(auth):
     new_type = Select(
-        Option("Ask", value="Ask", selected=True),
-        Option("Show", value="Show"),
-        Option("Tell", value="Tell"),
+        Option("Ask", value="ask", selected=True),
+        Option("Show", value="show"),
+        Option("Tell", value="tell"),
         cls="w-full p-2 mb-4 border rounded shadow-sm",
         id="_verb"
     )
@@ -714,13 +721,13 @@ def get(auth):
     new_inp = Input(id="new-title", name="title", placeholder="Item Title", cls="w-full p-2 mb-4 border rounded shadow-sm")
     new_url = Input(id="new-url", name="url", placeholder="Item URL (optional)", cls="w-full p-2 mb-4 border rounded shadow-sm")
     new_verb = Input(id="verb", name="verb", placeholder="Submission Verb", cls="w-full p-2 mb-4 border rounded shadow-sm")
-    description = Textarea(id="description", name="description", placeholder="Description (Markdown supported)", 
+    description = Textarea(id="description", name="description", placeholder="Description (Markdown supported)",
                            rows="5",
                           #  hx_post="/preview",
                            hx_trigger="keyup changed delay:500ms",
                            hx_target="#live-preview",
                            cls="w-full p-2 mb-4 border rounded shadow-sm h-32")
-    
+
     add = Form(
         Div(
             new_type,
@@ -742,7 +749,7 @@ def get(auth):
     card = Card(
         add,
         header=Div(
-            'Submit New Item for Consideration', 
+            'Submit New Item for Consideration',
             P(
                 Ul(
                     Li("Ask: For questions or seeking advice from the community"),
@@ -763,48 +770,90 @@ def get(auth):
 
 
 @app.post("/submitLink")
-async def submitLink(auth, _source:Source, _verb: str):
-    # # `hx_swap_oob='true'` tells HTMX to perform an out-of-band swap, updating this element wherever it appears.
-    # # This is used to clear the input field after adding the new todo.
-    # new_inp =  Input(id="new-title", name="title", placeholder="New Todo", hx_swap_oob='true')
-    # new_url = Input(id="new-url", name="url", placeholder="Post URL (optional)", hx_swap_oob='true')
-    # dummy = Input(id="new-dummy", name="dummy", placeholder="Dummy")
-    # # `insert` returns the inserted todo, which is appended to the start of the list, because we used
-    # # `hx_swap='afterbegin'` when creating the todo list form.
-    _source.created_at = datetime.now().isoformat()
-    _source.source_id = uuid4()
-    _source.source_type = 'article'
-    print('_source', _source)
+async def submitLink(auth, title:str, url:str, description:str, _verb:str):
+    print('title', title)
+    print('url', url)
+    print('description', description)
+    print('verb', _verb)
+
+    sourceDC = None
+    source_id = None
+    if url is not None:
+        sourceDC = Source(title=title, url=url, description=description, source_type='article', user_id=auth['user_id'])
+        source_id = uuid4()
+        sourceDC.source_id = source_id
+        sourceDC.created_at = datetime.now().isoformat()
+
+    submissionDC = Submission(
+        source_id=source_id if sourceDC else None,
+        user_id=auth['user_id'],
+        type=_verb,
+        title=title,
+        description=description,
+        state="submission"
+    )
+    submissionDC.submission_id = uuid4()
+    submissionDC.created_at = datetime.now().isoformat()
+
+    topicDC = Topic(
+        topic_id=uuid4(),
+        title=title,
+        type=_verb,
+        state="submission",
+        user_id=auth['user_id'],
+        submission_id=submissionDC.submission_id,
+        primary_source_id=source_id if sourceDC else None,
+        description=description,
+        created_at=datetime.now().isoformat()
+    )
+
     try:
-      _source = source.insert(_source)
+        if source:
+            source.insert(sourceDC)
+        submission.insert(submissionDC)
+        topic.insert(topicDC)
     except Exception as e:
-        # SWYX TODO: if its a sqlite3.IntegrityError then its a double post
-        # we dont know how to return a nice error here
         print(f"Error occurred: {str(e)}")
         return RedirectResponse('/all', status_code=303)
 
-    submission.insert({
-        "source_id": _source.source_id,
-        "user_id": auth['user_id'],
-        "type": _verb,
-        "state": "new"
-    })
-
-    import random
-    result = topic.insert({
-        "topic_id": uuid4(),
-        "title": _source.title,
-        "type": _verb,
-        "state": "submission",
-        "user_id": auth['user_id'],
-        "primary_source_id": _source.source_id,
-        "description": _source.description,
-        "rank": random.randint(0, 500), # # just for demo purposes, comment out in future
-        "created_at": _source.created_at
-    })
-    print('result', result)
+    return RedirectResponse('/all', status_code=303)
     
-    return allSubmissions(auth)
+    # _source.created_at = datetime.now().isoformat()
+    # _source.source_id = uuid4()
+    # _source.source_type = 'article'
+    # print('_source', _source)
+    # try:
+    #   _source = source.insert(_source)
+    # except Exception as e:
+    #     # SWYX TODO: if its a sqlite3.IntegrityError then its a double post
+    #     # we dont know how to return a nice error here
+    #     print(f"Error occurred: {str(e)}")
+    #     return RedirectResponse('/all', status_code=303)
+
+    # # For Now Lets Use the Same Submission States as Topic States
+    # # valid_topic_states = ["submission", "top", "archived", "hidden"]
+    # submission.insert({
+    #     "source_id": _source.source_id,
+    #     "user_id": auth['user_id'],
+    #     "type": _verb,
+    #     "state": "submission"
+    # })
+
+    # import random
+    # result = topic.insert({
+    #     "topic_id": uuid4(),
+    #     "title": _source.title,
+    #     "type": _verb,
+    #     "state": "submission",
+    #     "user_id": auth['user_id'],
+    #     "primary_source_id": _source.source_id,
+    #     "description": _source.description,
+    #     "rank": random.randint(0, 500), # # just for demo purposes, comment out in future
+    #     "created_at": _source.created_at
+    # })
+    # print('result', result)
+
+    # return allSubmissions(auth)
 
 @app.post("/feedbackLink")
 async def feedbackLink(auth, _feedback:Feedback):
@@ -824,7 +873,7 @@ async def feedbackLink(auth, _feedback:Feedback):
 def feedbackThanks(auth):
     card = Card(
         header=Div(
-            'Thank you for your feedback!', 
+            'Thank you for your feedback!',
             id='header', cls="text-2xl font-bold mb-6 text-center"),
         footer=Div(id='current-post'),
         cls="bg-gray-100 p-8 rounded-lg shadow-lg"
@@ -844,13 +893,13 @@ def get(auth):
 
     new_title = Input(id="new-title", name="title", placeholder="Title", cls="w-full p-2 mb-4 border rounded shadow-sm")
     new_email = Input(id="new-email", name="email", placeholder="Email", cls="w-full p-2 mb-4 border rounded shadow-sm")
-    description = Textarea(id="description", name="description", placeholder="Description (Markdown supported)", 
+    description = Textarea(id="description", name="description", placeholder="Description (Markdown supported)",
                            rows="5",
                           #  hx_post="/preview",
                            hx_trigger="keyup changed delay:500ms",
                            hx_target="#live-preview",
                            cls="w-full p-2 mb-4 border rounded shadow-sm h-32")
-    
+
     add = Form(
         Div(
             new_type,
@@ -872,7 +921,7 @@ def get(auth):
     card = Card(
         add,
         header=Div(
-            'Submit Feedback for Consideration', 
+            'Submit Feedback for Consideration',
             id='header', cls="text-2xl font-bold mb-6 text-center"),
         footer=Div(id='current-post'),
         cls="bg-gray-100 p-8 rounded-lg shadow-lg"
@@ -925,7 +974,7 @@ def clr_details(): return Div(hx_swap_oob='innerHTML', id='current-post')
 
 @app.get("/p/{id}")
 async def seeTopic(auth, id:str):
-    
+
     # Query the topic table by topic_id, joining with the source table
     topic_query = f"""
     SELECT t.*, s.url as source_url, s.title as source_title, s.description as source_description
@@ -933,7 +982,7 @@ async def seeTopic(auth, id:str):
     JOIN {source} s ON t.primary_source_id = s.source_id
     WHERE t.topic_id = ?
     """
-    
+
     try:
         topic_data = next(db.query(topic_query, [id]))
     except StopIteration:
@@ -947,7 +996,7 @@ async def seeTopic(auth, id:str):
     LEFT JOIN {topic} t ON ts.topic_id = t.topic_id
     WHERE ts.topic_id = ? AND s.source_id != t.primary_source_id
     """
-    
+
     additional_sources = list(db.query(sources_query, [id]))
 
     # Add the additional sources to the topic_data
@@ -1008,7 +1057,7 @@ async def seeTopic(auth, id:str):
 
     # The `hx_put` attribute tells HTMX to send a PUT request when the form is submitted.
     # `target_id` specifies which element will be updated with the server's response.
-    
+
     # res = Form(
     #     Div(
     #         Label("Title:", For="title"),
@@ -1066,10 +1115,10 @@ async def seeTopic(auth, id:str):
 
     # Query comments for the current topic, joining with the user table to get the username
     comments = db.q(f"""
-        SELECT c.*, u.username 
+        SELECT c.*, u.username
         FROM {comment} c
         JOIN {user} u ON c.user_id = u.user_id
-        WHERE c.topic_id = ? 
+        WHERE c.topic_id = ?
         ORDER BY c.created_at DESC
     """, [id])
     # Function to recursively render comments
@@ -1131,20 +1180,20 @@ async def submit_comment(auth, _comment: Comment):
     # Ensure the user is authenticated
     if not auth:
         return RedirectResponse('/login', status_code=303)
-    
+
     # Set the user_id from the authenticated user
     _comment.user_id = auth['user_id']
     _comment.comment_id = uuid4()
     _comment.parent_id = None
     # Set the created_at timestamp
     _comment.created_at = datetime.now().isoformat()
-    
+
     # Insert the comment into the database
     new_comment = comment.insert(_comment)
-    
+
     # Fetch the username for the newly created comment
     user_data = next(db.query("SELECT username FROM user WHERE user_id = ?", [new_comment.user_id]))
-    
+
     # Render the new comment
     new_comment_html = Div(
         Div(f"@{user_data['username']} on {display_time(new_comment.created_at)}", cls="text-sm text-gray-500 mb-1"),
@@ -1153,7 +1202,7 @@ async def submit_comment(auth, _comment: Comment):
         # Span(f"Parent ID: {new_comment.parent_id or 'None'}", cls="text-xs text-gray-500"),
         cls="pl-0 mb-4"
     )
-    
+
     # Return the rendered HTML for the new comment
     return new_comment_html
 
@@ -1200,7 +1249,7 @@ def parse_markdown_file(file_path):
       import os
       file_mtime = os.path.getmtime(file_path)
       frontmatter['date'] = datetime.fromtimestamp(file_mtime).strftime('%Y-%m-%d %H:%M:%S')
-  
+
   return frontmatter, md_content
 
 @app.get("/blog/")
@@ -1218,10 +1267,10 @@ async def blog_list(auth):
               'date': frontmatter.get('date', 'No date'),
               'slug': slug
           })
-  
+
   # Sort blog posts by date, newest first
   blog_posts.sort(key=lambda x: x['date'], reverse=True)
-  
+
   # Render the blog list
   blog_list_html = Div(
       H1("Blog Posts", cls="text-4xl font-bold mb-8 text-center"),
@@ -1237,7 +1286,7 @@ async def blog_list(auth):
       ], cls="space-y-4"),
       cls="container mx-auto px-4 py-8 max-w-2xl"
   )
-  
+
   return page_header("Blog", auth, blog_list_html)
 
 @app.get("/blog/{slug}")
@@ -1245,10 +1294,10 @@ async def blog_post(auth, slug: str):
   # import markdown
   content_dir = './content'
   file_path = os.path.join(content_dir, f"{slug}.md")
-  
+
   if not os.path.exists(file_path):
       blog_list_html = await blog_list(auth)
-      return page_header("Blog Post Not Found", auth, 
+      return page_header("Blog Post Not Found", auth,
           Div(
               H1("Blog Post Not Found", cls="text-3xl font-bold mb-8 text-red-600"),
               P("The requested blog post could not be found. Here's a list of available posts:", cls="mb-8"),
@@ -1268,7 +1317,7 @@ async def blog_post(auth, slug: str):
       A2("← Back to Blog List", href="/blog/", cls="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out"),
       cls="container mx-auto px-4 py-12 max-w-3xl"
   )
-  
+
   return page_header(frontmatter.get('title', 'Blog Post'), auth, blog_post_html)
 
 
@@ -1281,6 +1330,8 @@ async def seed():
 async def get_schema(table_name: str):
     if table_name not in db.t:
         raise HTTPException(status_code=404, detail="Table not found")
-    return {"schema": db.t[table_name].schema}    
+    return {"schema": db.t[table_name].schema}
+
+setup_admin_routes(app)
 
 serve()

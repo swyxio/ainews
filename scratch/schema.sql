@@ -10,6 +10,19 @@ CREATE TABLE [user] (
 )
 
 
+-- Schema for table: user_roles
+CREATE TABLE "user_roles" (
+    [user_id] TEXT REFERENCES [user]([user_id]),
+    [role] TEXT,
+    PRIMARY KEY ([user_id], [role])
+    
+    ,
+    FOREIGN KEY (user_id) REFERENCES user (user_id)
+    
+
+);
+
+
 -- Schema for table: tag
 CREATE TABLE [tag] (
     [tag_id] TEXT PRIMARY KEY,
@@ -49,30 +62,33 @@ CREATE TABLE [source] (
     [url] TEXT NOT NULL,
     [title] TEXT NOT NULL,
     [description] TEXT,
+    [user_id] TEXT,
     [source_type] TEXT NOT NULL,
     [created_at] TEXT DEFAULT CURRENT_TIMESTAMP
 
 )
 
 
--- Schema for table: submission
-CREATE TABLE "submission" (
-    [source_id] TEXT PRIMARY KEY REFERENCES [source]([source_id]),
-    [user_id] TEXT REFERENCES [user]([user_id])
-    
-    ,
-    FOREIGN KEY (user_id) REFERENCES user (user_id)
-    ,
-    FOREIGN KEY (source_id) REFERENCES source (source_id)
-    
+-- Schema for table: feedback
+CREATE TABLE [feedback] (
+    [source_id] INTEGER PRIMARY KEY,
+    [feedback_id] TEXT,
+    [type] TEXT,
+    [email] TEXT,
+    [title] TEXT,
+    [description] TEXT,
+    [created_at] TEXT DEFAULT CURRENT_TIMESTAMP
 
-);
+)
 
 
 -- Schema for table: topic
 CREATE TABLE [topic] (
     [topic_id] TEXT PRIMARY KEY,
     [title] TEXT NOT NULL,
+    [type] TEXT NOT NULL,
+    [state] TEXT,
+    [submission_id] TEXT,
     [user_id] TEXT,
     [primary_source_id] TEXT,
     [description] TEXT,
@@ -80,6 +96,28 @@ CREATE TABLE [topic] (
     [created_at] TEXT DEFAULT CURRENT_TIMESTAMP
 
 )
+
+
+-- Schema for table: submission
+CREATE TABLE "submission" (
+    [submission_id] TEXT REFERENCES [submission]([submission_id]),
+    [type] TEXT,
+    [title] TEXT,
+    [description] TEXT,
+    [state] TEXT,
+    [source_id] TEXT PRIMARY KEY REFERENCES [source]([source_id]),
+    [user_id] TEXT REFERENCES [user]([user_id]),
+    [created_at] TEXT DEFAULT CURRENT_TIMESTAMP
+    
+    ,
+    FOREIGN KEY (user_id) REFERENCES user (user_id)
+    ,
+    FOREIGN KEY (source_id) REFERENCES source (source_id)
+    ,
+    FOREIGN KEY (submission_id) REFERENCES submission (submission_id)
+    
+
+);
 
 
 -- Schema for table: topic_source
@@ -191,6 +229,23 @@ CREATE TABLE "comment_vote" (
     
     ,
     FOREIGN KEY (comment_id) REFERENCES comment (comment_id)
+    ,
+    FOREIGN KEY (user_id) REFERENCES user (user_id)
+    
+
+);
+
+
+-- Schema for table: submission_vote
+CREATE TABLE "submission_vote" (
+    [vote_id] TEXT PRIMARY KEY,
+    [user_id] TEXT NOT NULL REFERENCES [user]([user_id]),
+    [submission_id] TEXT NOT NULL REFERENCES [submission]([submission_id]),
+    [vote_type] INTEGER NOT NULL,
+    [created_at] TEXT DEFAULT CURRENT_TIMESTAMP
+    
+    ,
+    FOREIGN KEY (submission_id) REFERENCES submission (submission_id)
     ,
     FOREIGN KEY (user_id) REFERENCES user (user_id)
     
